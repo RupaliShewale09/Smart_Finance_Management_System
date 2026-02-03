@@ -1,0 +1,11 @@
+transaction_id,timestamp,merchant_name,,merchant_category,amount,payment_mode,is_recurring,user_balance_pre,label_category,label_urgency
+TXN0001,2026-01-28 10:12:34,UPI-BSESRAJASTHAN@HDFC,,Utilities,4200,UPI,True,15000,Red,Critical
+TXN0002,2026-01-28 12:45:20,Rajesh General Store,,Groceries,320,UPI,False,1200,Orange,Necessary
+TXN0003,2026-01-29 09:10:12,UPI-ZOMATO-PAYMENTS@HDFC,,Dining,650,UPI,False,2500,Yellow,Discretionary
+TXN0004,2026-01-27 18:30:00,VPA-Netflix@PAYTM,,Subscriptions,499,UPI,True,4000,Yellow,Discretionary
+TXN0005,2026-01-28 08:15:50,HDFC Home Loan,,Mortgage,22000,Net Banking,True,50000,Red,Critical
+TXN0006,2026-01-28 20:05:40,HP Petrol Pump,,Commuting,1200,Debit Card,False,8000,Orange,Necessary
+TXN0007,2026-01-29 14:22:10,VPA-Apollo Pharmacy@ICICI,,Healthcare,850,UPI,False,2000,Orange,Necessary
+TXN0008,2026-01-28 19:50:25,UPI-PVR@PAYTM,,Entertainment,450,UPI,False,1500,Yellow,Discretionary
+TXN0009,2026-01-27 11:00:00,Rajesh General Store,,Groceries,480,UPI,False,300,Yellow,Discretionary
+TXN0010,2026-01-26 21:40:15,LIC Premium Payment,,Insurance,3500,UPI,True,10000,Red,Critical
