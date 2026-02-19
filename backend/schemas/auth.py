@@ -138,3 +138,15 @@ class VendorRegister(BaseModel):
             raise RequestValidationError(e.errors())
         
 
+
+class WalletAddMoney(BaseModel):
+    user_id: int
+    amount: float = Field(..., gt=0) # Must be greater than 0
+
+    @classmethod
+    def as_form(
+        cls, 
+        user_id: int = Form(...),
+        amount: float = Form(...)
+    ):
+        return cls(user_id=user_id, amount=amount)
