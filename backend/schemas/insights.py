@@ -32,7 +32,9 @@ class InsightsForm(BaseModel):
 class SpendingInsightsResponse(BaseModel):
     total_spent: float
     category_wise_spending: Dict[str, float]
-    category_percentages: Dict[str, float]
     high_urgency_expenses: int
     distinct_recurring_merchants: int
     savings_warning: str
+    daily_trend_plotly: str
+    bar_chart_plotly: str  # JSON string from Plotly
+    pie_chart_plotly: str  # JSON string from Plotly

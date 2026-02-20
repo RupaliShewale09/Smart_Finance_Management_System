@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal
+import backend.database as database
+from backend.schemas.nudges import NudgeResponse
+from typing import List
 from backend.utils.ai_nudge_engine import (
     analyze_user_behavior,
     generate_nudge,
@@ -38,3 +41,19 @@ def run_nudge_engine(user_id: int, db: Session = Depends(get_db)):
     save_nudge(user_id, behavior["type"], behavior["severity"], message, db)
 
     return {"nudge": message}
+
+
+# --- The Endpoint ---
+@router.get("/history/{user_id}", response_model=List[NudgeResponse])
+def get_nudge_history(user_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieve all past AI nudges for a specific user, sorted by newest first.
+    """
+    nudges = db.query(database.FinancialNudge).filter(
+        database.FinancialNudge.user_id == user_id
+    ).order_by(database.FinancialNudge.delivered_at.desc()).all()
+    
+    if not nudges:
+        return []
+        
+    return nudges

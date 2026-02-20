@@ -47,6 +47,6 @@ def run_nudges():
 
 def start_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(run_nudges, "interval", minutes=30)  ## change this
+    scheduler.add_job(run_nudges, "interval", minutes=180)  ## change this
     scheduler.start()
     logger.info("Scheduler started successfully.")
