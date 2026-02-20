@@ -1,0 +1,132 @@
+<!-- overview.html — content fragment, loaded into #overviewTab by base.html -->
+
+<div class="aibar" id="aiBar">
+  <span class="ai-ico">✦</span>
+  <p class="ai-txt" id="aiTxt">AI is analyzing… <strong>loading your financial insights</strong></p>
+</div>
+
+<div class="ov-stats">
+  <div class="bal-card">
+    <div class="bl">Total Balance</div>
+    <div class="bamt" id="walBal">₹0.00</div>
+    <div class="bid"  id="walId">Wallet ID: —</div>
+    <div class="bbadges">
+      <div class="bbadge"><div class="bdot"></div>AI-Monitored</div>
+      <div class="bbadge" id="riskBadge">⚖️ Medium Risk</div>
+    </div>
+    <div class="bbtns">
+      <button class="bbtn" onclick="openSP()">📱 Scan &amp; Pay</button>
+      <button class="bbtn" onclick="showAddMoney()">+ Add Money</button>
+    </div>
+  </div>
+  <div class="sc">
+    <div class="sc-tp"><div class="sc-ico ic-g">💰</div><span class="sbadge sb-up">income</span></div>
+    <div class="sval" id="ovInc">₹0</div>
+    <div class="slbl">Monthly Income</div>
+  </div>
+  <div class="sc">
+    <div class="sc-tp"><div class="sc-ico ic-r">💸</div><span class="sbadge sb-dn" id="spBadge">—</span></div>
+    <div class="sval" id="totSpent">₹0</div>
+    <div class="slbl">Spent This Month</div>
+  </div>
+  <div class="sc">
+    <div class="sc-tp"><div class="sc-ico ic-y">🔥</div><span class="sbadge sb-nu" id="urgBadge">—</span></div>
+    <div class="sval" id="hiUrg">0</div>
+    <div class="slbl">High Urgency Txns</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="chdr"><span class="ctitle">Active Alerts</span><span class="ctag" id="alertCnt">0</span></div>
+  <div id="alertList"><div class="empty"><div class="ei">✅</div>No alerts right now</div></div>
+</div>
+
+<script>
+  async function fetchOverviewCurrentMonth() {
+    if (pType !== 'user') return;
+
+    const fd = new FormData();
+    fd.append('user_id', userId);
+    fd.append('start_date', fom());
+    fd.append('end_date', today());
+
+    try {
+      const d = await (
+        await fetch(`${API}/insights/spending-form`, {
+          method: 'POST',
+          body: fd
+        })
+      ).json();
+
+      const fmt = v => `₹${parseFloat(v || 0).toFixed(0)}`;
+      const ts = fmt(d.total_spent);
+      const hu = d.high_urgency_expenses || 0;
+      const cats = Object.keys(d.category_wise_spending || {}).length;
+      const income = (prof?.income) || 1;
+
+      const g = id => document.getElementById(id);
+
+      if (g('totSpent')) g('totSpent').textContent = ts;
+      if (g('hiUrg'))    g('hiUrg').textContent    = hu;
+      if (g('spBadge'))  g('spBadge').textContent  = `${((d.total_spent / income) * 100).toFixed(0)}% income`;
+      if (g('urgBadge')) g('urgBadge').textContent = `${hu} high-urgency`;
+      if (g('aiTxt'))    g('aiTxt').innerHTML = `This month: spent <strong>${ts}</strong> across <strong>${cats}</strong> categories. ${hu > 2 ? '⚠️ High-urgency spending detected.' : '✅ Spending on track.'}`;
+
+    } catch (e) {
+      console.error('Overview error:', e);
+    }
+  }
+
+  async function fetchAlerts() {
+    if (pType !== 'user') return;
+
+    try {
+      const d = await (
+        await fetch(`${API}/spend/alerts/${userId}`)
+      ).json();
+
+      const alerts = d.alerts || [];
+      const spendingFromAlerts = {};
+
+      alerts.forEach(a => {
+        if (a.category && a.message.includes(':')) {
+          spendingFromAlerts[a.category.toLowerCase().trim()] = parseFloat(
+            a.message.split(': ')[1].split('/')[0]
+          );
+        }
+      });
+
+      const html = alerts.length
+        ? alerts.map(a => `
+            <div class="ait ${a.type === 'danger' ? 'd' : 'w'}">
+              <span style="font-size:16px">${a.type === 'danger' ? '🚨' : '⚠️'}</span>
+              <div>
+                <div class="attl">${a.category || 'Alert'}</div>
+                <div class="amsg">${a.message}</div>
+              </div>
+            </div>
+          `).join('')
+        : '<div class="empty"><div class="ei">✅</div>No limit alerts this month</div>';
+
+      ['alertList', 'limAlerts'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+      });
+
+      const ac  = document.getElementById('alertCnt');
+      if (ac)  ac.textContent = alerts.length > 0 ? `${alerts.length} active` : '0';
+
+      const lac = document.getElementById('limAlertCnt');
+      if (lac) lac.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
+
+      if (window.currentLimitsData && typeof renderLimits === 'function') {
+        renderLimits(window.currentLimitsData, spendingFromAlerts);
+      }
+
+      window.alertSpending = spendingFromAlerts;
+
+    } catch (e) {
+      console.error('Alert error:', e);
+    }
+  }
+</script>

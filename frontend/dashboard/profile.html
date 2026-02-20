@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!-- profile.html — inject into #profileTab via server include or fetch -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFinance — Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p:#4338CA;--pl:#6366F1;--pg:rgba(67,56,202,0.10);
+      --ac:#06B6D4;--ok:#10B981;--er:#EF4444;
+      --bg:#F0F4FF;--sf:#FFFFFF;--s2:#F5F7FF;
+      --bd:#E2E8F8;--t1:#0D1535;--t2:#435085;--t3:#8894C2;
+      --r:18px;--r2:11px;
+    }
+    body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--t1); padding:24px; }
+
+    .phdr { margin-bottom:20px; }
+    .phdr h1 { font-size:24px; font-weight:800; letter-spacing:-0.5px; }
+    .card { background:var(--sf); border:1px solid var(--bd); border-radius:var(--r); padding:22px; }
+    .chdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+    .ctitle { font-size:15px; font-weight:700; }
+    .ctag { font-size:11px; font-weight:700; padding:4px 11px; border-radius:30px; background:var(--pg); color:var(--p); }
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; border-radius:var(--r2); font-size:14px; font-weight:700; cursor:pointer; transition:0.15s; font-family:inherit; border:none; }
+    .bp { background:var(--p); color:#fff; width:100%; }
+    .bp:hover { background:#3730A3; box-shadow:0 6px 18px rgba(67,56,202,0.3); }
+    .bs { background:var(--s2); border:1.5px solid var(--bd); color:var(--t1); }
+    .bs:hover { border-color:var(--p); color:var(--p); }
+    .fg { margin-bottom:16px; }
+    .fg label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--t2); margin-bottom:7px; }
+    .fg input, .fg select { width:100%; padding:11px 13px; background:var(--s2); border:1.5px solid var(--bd); border-radius:var(--r2); font-size:14px; color:var(--t1); font-family:inherit; }
+    .fg input:focus, .fg select:focus { outline:none; border-color:var(--p); background:#fff; }
+    .txnr { padding:14px; border-radius:var(--r2); margin-top:14px; font-size:13px; }
+    .txnr.ok  { background:rgba(16,185,129,0.08); border:1.5px solid var(--ok); color:#047857; }
+    .txnr.err { background:rgba(239,68,68,0.06);  border:1.5px solid var(--er); color:#b91c1c; }
+    .hidden { display:none !important; }
+    .div { border-top:1px solid var(--bd); margin:16px 0; }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+    @media(max-width:640px){ .two-col{grid-template-columns:1fr} }
+
+    /* Profile rows */
+    .pfr { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--bd); }
+    .pfr:last-child { border-bottom:none; }
+    .pfl { font-size:12px; color:var(--t3); font-weight:600; }
+    .pfv { font-size:14px; font-weight:700; }
+  </style>
+</head>
+<body>
+
+<div id="_profileContent">
+
+  <div class="phdr"><h1>Profile &amp; QR Code</h1></div>
+
+  <div class="two-col">
+    <!-- Left: details + update form -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="chdr"><span class="ctitle">Account Details</span></div>
+        <div id="profDets"></div>
+      </div>
+      <div id="upForm" class="card" style="display:none">
+        <div class="chdr"><span class="ctitle">Update Profile</span></div>
+        <div class="fg"><label>Monthly Income (₹)</label><input type="number" id="upInc" step="0.01"></div>
+        <div class="fg"><label>Savings Goal (₹)</label><input type="number" id="upSav" step="0.01"></div>
+        <div class="fg">
+          <label>Risk Tolerance</label>
+          <select id="upRisk">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <button class="btn bp" onclick="updateProf()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Right: QR + add money -->
+    <div class="card" style="text-align:center">
+      <div class="chdr">
+        <span class="ctitle">Payment QR</span>
+        <span class="ctag">Scan to Pay</span>
+      </div>
+      <div style="background:var(--s2);padding:22px;border-radius:var(--r);display:inline-block;margin-bottom:14px;border:1px solid var(--bd)">
+        <img id="qrImg" src="" alt="QR Code" style="width:200px;height:200px;display:block">
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--t3);padding:8px 12px;background:var(--s2);border-radius:var(--r2);margin-bottom:14px;word-break:break-all" id="qrId">—</div>
+      
+      <div class="qr-action-row" style="margin-bottom:16px">
+        <button class="btn bs bsm" style="width:100%" onclick="dlQR()">📥 Download</button>
+        <button class="btn bs bsm" style="width:100%" onclick="shareQR()">🔗 Share</button>
+      </div>
+      
+      <div class="div"></div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px;color:var(--t1)">Add Money to Wallet</div>
+      <div class="fg"><label>Amount (₹)</label><input type="number" id="amAmtProfile" step="0.01" min="0" placeholder="Enter amount"></div>
+      <button class="btn bp" onclick="addMoneyProfile()">💰 Add Money</button>
+      <div id="amProfRes" class="txnr hidden"></div>
+    </div>
+  </div>
+
+</div><!-- /#_profileContent -->
+
+<script>
+  (function() {
+    const target = document.getElementById('profileTab');
+    if (!target) return;
+    target.appendChild(document.getElementById('_profileContent'));
+    // Render details if prof is already loaded
+    if (typeof prof !== 'undefined' && prof) renderProfDets(prof);
+  })();
+
+  // =====================================================================
+  //  PROFILE RENDER & UPDATE
+  // =====================================================================
+  function renderProfDets(d) {
+    let h = `
+      <div class="pfr"><span class="pfl">${d.username?'Username':'Business'}</span><span class="pfv">${d.username||d.business_name}</span></div>
+      <div class="pfr"><span class="pfl">Email</span><span class="pfv">${d.email}</span></div>
+      <div class="pfr"><span class="pfl">Phone</span><span class="pfv">${d.phone}</span></div>`;
+    if (typeof pType !== 'undefined' && pType === 'vendor') {
+      h += `<div class="pfr"><span class="pfl">Category</span><span class="pfv">${d.category}</span></div>`;
+    } else {
+      h += `
+        <div class="pfr"><span class="pfl">Monthly Income</span><span class="pfv">₹${(d.income||0).toFixed(2)}</span></div>
+        <div class="pfr"><span class="pfl">Savings Goal</span><span class="pfv">₹${(d.savings_goal||0).toFixed(2)}</span></div>
+        <div class="pfr"><span class="pfl">Risk Tolerance</span><span class="pfv" style="text-transform:capitalize">${d.risk_tolerance||'medium'}</span></div>`;
+      const f = document.getElementById('upForm');
+      if (f) {
+        f.style.display = 'block';
+        const ui = document.getElementById('upInc'); if (ui) ui.value = d.income || 0;
+        const us = document.getElementById('upSav'); if (us) us.value = d.savings_goal || 0;
+        const ur = document.getElementById('upRisk'); if (ur) ur.value = d.risk_tolerance || 'medium';
+      }
+    }
+    const el = document.getElementById('profDets');
+    if (el) el.innerHTML = h;
+
+    // Also update QR in this tab
+    if (d.wallet) {
+      const qurl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(d.wallet.wallet_id)}`;
+      const qi = document.getElementById('qrImg');   if (qi) qi.src = qurl;
+      const qid= document.getElementById('qrId');    if (qid) qid.textContent = d.wallet.wallet_id;
+    }
+  }
+
+  async function updateProf() {
+    if (typeof pType === 'undefined' || pType !== 'user') return;
+    const fd = new FormData();
+    fd.append('monthly_income', document.getElementById('upInc').value);
+    fd.append('savings_goal',   document.getElementById('upSav').value);
+    fd.append('risk_tolerance', document.getElementById('upRisk').value);
+    try {
+      const d = await (await fetch(`${API}/auth/users/profile/${userId}`, { method:'PUT', body:fd })).json();
+      if (d.message) {
+        alert('Profile updated!');
+        if (typeof loadProf === 'function') await loadProf();
+        if (typeof autoSavings === 'function') autoSavings();
+      }
+    } catch(e) { alert('Update failed.'); }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<!-- limits.html — inject into #limitsTab via server include or fetch -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFinance — Limits</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p: #4338CA;
+      --pl: #6366F1;
+      --pg: rgba(67, 56, 202, 0.10);
+      --ok: #10B981;
+      --er: #EF4444;
+      --wn: #F59E0B;
+      --bg: #F0F4FF;
+      --sf: #FFFFFF;
+      --s2: #F5F7FF;
+      --bd: #E2E8F8;
+      --t1: #0D1535;
+      --t2: #435085;
+      --t3: #8894C2;
+      --r: 18px;
+      --r2: 11px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      padding: 24px;
+    }
+
+    .phdrr {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .phdr h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .phdr p {
+      font-size: 13px;
+      color: var(--t3);
+      margin-top: 3px;
+    }
+
+    .card {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 22px;
+    }
+
+    .chdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .ctitle {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ctag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 30px;
+      background: var(--pg);
+      color: var(--p);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+      border: none;
+    }
+
+    .bp {
+      background: var(--p);
+      color: #fff;
+    }
+
+    .bp:hover {
+      background: #3730A3;
+    }
+
+    .bsm {
+      padding: 9px 16px;
+      font-size: 12.5px;
+      width: auto !important;
+    }
+
+    .ibox {
+      display: flex;
+      gap: 10px;
+      padding: 13px 15px;
+      background: rgba(67, 56, 202, 0.05);
+      border: 1px solid rgba(67, 56, 202, 0.12);
+      border-radius: var(--r2);
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, var(--s2) 25%, var(--bd) 50%, var(--s2) 75%);
+      background-size: 200% 100%;
+      animation: shim 1.5s infinite;
+    }
+
+    @keyframes shim {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    .empty {
+      padding: 36px;
+      text-align: center;
+      color: var(--t3);
+      font-size: 13px;
+    }
+
+    .ei {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .ait {
+      display: flex;
+      gap: 12px;
+      padding: 13px 15px;
+      border-radius: var(--r2);
+      margin-bottom: 10px;
+      border-left: 4px solid;
+    }
+
+    .ait.w {
+      background: rgba(245, 158, 11, 0.05);
+      border-color: var(--wn);
+    }
+
+    .ait.d {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: var(--er);
+    }
+
+    .attl {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .amsg {
+      font-size: 12px;
+      color: var(--t2);
+    }
+
+    /* Summary stat cards */
+    .sc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .sc-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sc {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 20px;
+    }
+
+    .sc-tp {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .sc-ico {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .ic-g {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .ic-r {
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .ic-y {
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .sbadge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 30px;
+    }
+
+    .sb-up {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--ok);
+    }
+
+    .sb-dn {
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--er);
+    }
+
+    .sb-nu {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--wn);
+    }
+
+    .sval {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .slbl {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Limit bars */
+    .lim {
+      padding: 16px;
+      background: var(--s2);
+      border-radius: var(--r2);
+      margin-bottom: 10px;
+      border: 1px solid var(--bd);
+    }
+
+    .lim:last-child {
+      margin-bottom: 0;
+    }
+
+    .lhdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .lcat {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .lpct {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 30px;
+    }
+
+    .lpct.safe {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--ok);
+    }
+
+    .lpct.warn {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--wn);
+    }
+
+    .lpct.danger {
+      background: rgba(239, 68, 68, 0.10);
+      color: var(--er);
+    }
+
+    .lbar {
+      height: 10px;
+      background: var(--bd);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .lfill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lnums {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<div id="_limitsContent">
+
+  <div class="phdrr">
+    <div class="phdr">
+      <h1>Spend Limits</h1>
+      <p>AI-managed budgets · calculated for this month only</p>
+    </div>
+    <button class="btn bp bsm" onclick="genLimits()">⚙ Regenerate</button>
+  </div>
+
+  <div class="ibox" style="margin-bottom:16px;align-items:center">
+    📅
+    <div>Showing limits for <strong id="limMonthLabel">this month</strong>. Ratios = actual spending ÷ AI-generated limit.</div>
+  </div>
+
+  <!-- Summary -->
+  <div class="sc-grid">
+    <div class="sc">
+      <div class="sc-tp">
+        <div class="sc-ico ic-g">✅</div>
+        <span class="sbadge sb-up">safe</span>
+      </div>
+      <div class="sval" id="limSafe" style="font-size:22px">0</div>
+      <div class="slbl">Within Budget</div>
+    </div>
+    <div class="sc">
+      <div class="sc-tp">
+        <div class="sc-ico ic-y">⚠️</div>
+        <span class="sbadge sb-nu">caution</span>
+      </div>
+      <div class="sval" id="limWarn" style="font-size:22px;color:var(--wn)">0</div>
+      <div class="slbl">Near Limit (70–90%)</div>
+    </div>
+    <div class="sc">
+      <div class="sc-tp">
+        <div class="sc-ico ic-r">🚨</div>
+        <span class="sbadge sb-dn">danger</span>
+      </div>
+      <div class="sval" id="limDang" style="font-size:22px;color:var(--er)">0</div>
+      <div class="slbl">Over / Critical</div>
+    </div>
+  </div>
+
+  <!-- Limit bars -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="chdr">
+      <span class="ctitle">Category Limits</span>
+      <span class="ctag" id="limTag">Loading…</span>
+    </div>
+    <div id="limDisp">
+      <div class="shimmer" style="height:100px;border-radius:var(--r2)"></div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="card">
+    <div class="chdr">
+      <span class="ctitle">🔔 Limit Alerts</span>
+      <span class="ctag" id="limAlertCnt" style="background:rgba(239,68,68,0.1);color:var(--er)">0 alerts</span>
+    </div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:12px">Only showing alerts triggered by this month's spending</div>
+    <div id="limAlerts">
+      <div class="empty">No alerts this month</div>
+    </div>
+  </div>
+
+</div><!-- /#_limitsContent -->
+
+<script>
+  (function() {
+    const target = document.getElementById('limitsTab');
+    if (!target) return;
+    target.appendChild(document.getElementById('_limitsContent'));
+    // Set month label
+    const ml = document.getElementById('limMonthLabel');
+    if (ml) ml.textContent = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+  })();
+
+  // =====================================================================
+  //  LIMITS DATA
+  // =====================================================================
+  async function autoLimits() {
+    try {
+      const fd = new FormData();
+      fd.append('user_id', userId);
+      fd.append('start_date', fom());
+      fd.append('end_date', today());
+
+      const [limRes, insRes] = await Promise.all([
+        fetch(`${API}/spend/generate/${userId}`, { method: 'POST' }),
+        fetch(`${API}/insights/spending-form`, { method: 'POST', body: fd })
+      ]);
+      const limData = await limRes.json();
+      const insData = await insRes.json();
+
+      if (limData.limits) {
+        window.currentLimitsData = limData.limits;
+        renderLimits(limData.limits, {
+          ...(insData.category_wise_spending || {}),
+          ...(window.alertSpending || {})
+        });
+        const lt = document.getElementById('limTag');
+        if (lt) lt.textContent = `${limData.limits.length} categories`;
+      }
+    } catch (e) {
+      console.error('Limits error:', e);
+    }
+  }
+
+  async function genLimits() {
+    const el = document.getElementById('limDisp');
+    if (el) el.innerHTML = '<div class="shimmer" style="height:100px;border-radius:var(--r2)"></div>';
+    await autoLimits();
+    if (typeof fetchAlerts === 'function') await fetchAlerts();
+  }
+
+  function renderLimits(limits, catSpending) {
+    const el = document.getElementById('limDisp');
+    if (!el) return;
+    let safe = 0, warn = 0, danger = 0;
+
+    const norm = {};
+    Object.keys(catSpending).forEach(k => {
+      norm[k.toLowerCase().trim()] = catSpending[k];
+    });
+
+    const html = limits.map(l => {
+      const k = l.category.toLowerCase().trim();
+      const spent = norm[k] || 0;
+      const lmt = l.limit;
+      const pct = lmt > 0 ? (spent / lmt) * 100 : 0;
+      const disp = Math.min(100, pct);
+      let cls, color;
+      if (pct >= 100) {
+        cls = 'danger';
+        color = '#EF4444';
+        danger++;
+      } else if (pct > 70) {
+        cls = 'warn';
+        color = '#F59E0B';
+        warn++;
+      } else {
+        cls = 'safe';
+        color = '#10B981';
+        safe++;
+      }
+      const rem = lmt - spent;
+      return `
+        <div class="lim">
+          <div class="lhdr">
+            <span class="lcat">${l.category}</span>
+            <span class="lpct ${cls}">${pct.toFixed(0)}% used</span>
+          </div>
+          <div class="lbar"><div class="lfill" style="width:${disp}%;background:${color}"></div></div>
+          <div class="lnums">
+            <span>₹${parseFloat(spent).toFixed(0)} spent of ₹${parseFloat(lmt).toFixed(0)}</span>
+            <span style="color:${rem >= 0 ? 'var(--ok)' : 'var(--er)'}">
+              ${rem >= 0 ? `₹${rem.toFixed(0)} left` : `₹${Math.abs(rem).toFixed(0)} over`}
+            </span>
+          </div>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = html;
+    ['limSafe', 'limWarn', 'limDang'].forEach((id, i) => {
+      const e = document.getElementById(id);
+      if (e) e.textContent = [safe, warn, danger][i];
+    });
+  }
+</script>
+</body>
+</html>

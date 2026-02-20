@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!-- insights.html — inject into #insightsTab via server include or fetch -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFinance — Insights</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --p: #4338CA;
+      --pl: #6366F1;
+      --pg: rgba(67, 56, 202, 0.10);
+      --ac: #06B6D4;
+      --ok: #10B981;
+      --wn: #F59E0B;
+      --er: #EF4444;
+      --bg: #F0F4FF;
+      --sf: #FFFFFF;
+      --s2: #F5F7FF;
+      --bd: #E2E8F8;
+      --t1: #0D1535;
+      --t2: #435085;
+      --t3: #8894C2;
+      --r: 18px;
+      --r2: 11px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      padding: 24px;
+    }
+
+    .phdrr {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .phdr h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .phdr p {
+      font-size: 13px;
+      color: var(--t3);
+      margin-top: 3px;
+    }
+
+    .card {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 22px;
+      overflow: hidden;
+    }
+
+    .chdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .ctitle {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .ctag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 30px;
+      background: var(--pg);
+      color: var(--p);
+    }
+
+    .fg {
+      margin-bottom: 16px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t2);
+      margin-bottom: 7px;
+    }
+
+    .fg input {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      border-radius: var(--r2);
+      font-size: 14px;
+      color: var(--t1);
+      font-family: inherit;
+    }
+
+    .fg input:focus {
+      outline: none;
+      border-color: var(--p);
+      background: #fff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+      border: none;
+    }
+
+    .bp {
+      background: var(--p);
+      color: #fff;
+    }
+
+    .bp:hover {
+      background: #3730A3;
+    }
+
+    .bsm {
+      padding: 9px 16px;
+      font-size: 12.5px;
+    }
+
+    .ibox {
+      display: flex;
+      gap: 10px;
+      padding: 13px 15px;
+      background: rgba(67, 56, 202, 0.05);
+      border: 1px solid rgba(67, 56, 202, 0.12);
+      border-radius: var(--r2);
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    /* Preset buttons */
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .pbtn {
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1.5px solid var(--bd);
+      background: var(--s2);
+      color: var(--t2);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+    }
+
+    .pbtn:hover {
+      border-color: var(--p);
+      color: var(--p);
+      background: var(--sf);
+    }
+
+    .pbtn.active {
+      border-color: var(--p);
+      background: var(--p);
+      color: #fff;
+    }
+
+    /* Stat tiles */
+    .itiles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    #catChart, #pieChart {
+      width: 100%;
+      min-height: 300px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .itiles {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .itile {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 18px;
+    }
+
+    .itlbl {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .itval {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Category breakdown */
+    .cbd {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .cbd:last-child {
+      border-bottom: none;
+    }
+
+    .cbd-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cbd-name {
+      font-size: 13px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .cbd-amt {
+      font-size: 13px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cbd-pct {
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="_insightsContent">
+
+  <div class="phdrr">
+    <div class="phdr">
+      <h1>Spending Insights</h1>
+      <p>AI-powered analysis · auto-loaded for this month</p>
+    </div>
+  </div>
+
+  <!-- Period selector -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="chdr">
+      <span class="ctitle">📅 Analysis Period</span>
+      <span class="ctag" id="iRangeLabel">This Month</span>
+    </div>
+    <div class="preset-btns">
+      <button class="pbtn active" onclick="setInsightPreset('month',this)">This Month</button>
+      <button class="pbtn" onclick="setInsightPreset('last',this)">Last Month</button>
+      <button class="pbtn" onclick="setInsightPreset('2months',this)">Last 2 Months</button>
+      <button class="pbtn" onclick="setInsightPreset('6months',this)">Last 6 Months</button>
+      <button class="pbtn" onclick="setInsightPreset('custom',this)">Custom Range</button>
+    </div>
+    <div id="iCustomRow" style="display:none;margin-top:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end">
+        <div class="fg" style="margin:0"><label>From</label><input type="date" id="iStart"></div>
+        <div class="fg" style="margin:0"><label>To</label><input type="date" id="iEnd"></div>
+        <button class="btn bp bsm" onclick="fetchInsights()" style="margin-top:18px">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colour legend -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:30px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2)">
+      <div style="width:10px;height:10px;border-radius:50%;background:#EF4444"></div>
+      <span style="font-size:12px;font-weight:700;color:#DC2626">Critical / High-urgency</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:30px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2)">
+      <div style="width:10px;height:10px;border-radius:50%;background:#F97316"></div>
+      <span style="font-size:12px;font-weight:700;color:#EA580C">Necessary / Essential</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:30px;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2)">
+      <div style="width:10px;height:10px;border-radius:50%;background:#EAB308"></div>
+      <span style="font-size:12px;font-weight:700;color:#CA8A04">Discretionary / Optional</span>
+    </div>
+  </div>
+
+  <!-- Summary tiles -->
+  <div class="itiles">
+    <div class="itile">
+      <div class="itlbl">💸 Total Spent</div>
+      <div class="itval" id="iSpent">₹0</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">this period</div>
+    </div>
+    <div class="itile">
+      <div class="itlbl">🔴 Critical</div>
+      <div class="itval" style="color:#EF4444" id="iUrg">0</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">high urgency txns</div>
+    </div>
+    <div class="itile">
+      <div class="itlbl">🔁 Recurring</div>
+      <div class="itval" style="color:var(--ac)" id="iRec">0</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">merchants</div>
+    </div>
+    <div class="itile">
+      <div class="itlbl">📊 Categories</div>
+      <div class="itval" style="color:var(--p)" id="iCats">0</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px">tracked</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="chdr">
+      <span class="ctitle">📈 Daily Spending Trend</span>
+      <span class="ctag">Timeline</span>
+    </div>    
+    <div id="dailyTrendChart"></div>
+  </div>
+
+  <!-- Bar chart -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="chdr">
+      <span class="ctitle">💰 Spending by Category</span>
+      <span class="ctag">Bar Chart</span>
+    </div>
+      <div id="catChart"></div>
+  </div>
+
+  <!-- Donut + breakdown -->
+  <div class="two-col">
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">🍩 Distribution</span>
+        <span class="ctag">Donut</span>
+      </div>
+      <div id="pieChart"></div>
+    </div>
+    <div class="card">
+      <div class="chdr">
+        <span class="ctitle">📋 Category Breakdown</span>
+      </div>
+      <div id="catBreakdown" style="max-height:240px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- Savings warning (shown when applicable) -->
+  <div id="swCard" class="card" style="display:none;margin-top:16px"><div id="sw"></div></div>
+
+</div><!-- /#_insightsContent -->
+
+<script>
+  (function() {
+    const target = document.getElementById('insightsTab');
+    if (!target) return;
+    target.appendChild(document.getElementById('_insightsContent'));
+  })();
+
+  let iPreset = 'month';
+
+  function setInsightPreset(preset, btn) {
+    iPreset = preset;
+    document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const labels = { month: 'This Month', last: 'Last Month', '2months': 'Last 2 Months', '6months': 'Last 6 Months' };
+    const cr = document.getElementById('iCustomRow');
+    if (preset === 'custom') {
+      cr.style.display = 'block';
+      document.getElementById('iStart').value = fom();
+      document.getElementById('iEnd').value = today();
+      document.getElementById('iRangeLabel').textContent = 'Custom';
+      return;
+    }
+    cr.style.display = 'none';
+    document.getElementById('iRangeLabel').textContent = labels[preset] || 'Custom';
+    fetchInsights();
+  }
+
+  async function fetchInsights() {
+    if (typeof pType === 'undefined' || pType !== 'user') return;
+    let sd, ed;
+    if (iPreset === 'custom') {
+      sd = document.getElementById('iStart')?.value || fom();
+      ed = document.getElementById('iEnd')?.value || today();
+    } else {
+      const r = dateRange(iPreset);
+      sd = r.sd; ed = r.ed;
+    }
+    const fd = new FormData();
+    fd.append('user_id', userId);
+    fd.append('start_date', sd);
+    fd.append('end_date', ed);
+
+    try {
+      const res = await fetch(`${API}/insights/spending-form`, { method: 'POST', body: fd });
+      const d = await res.json();
+      
+      document.getElementById('iSpent').textContent = `₹${parseFloat(d.total_spent || 0).toFixed(0)}`;
+      document.getElementById('iUrg').textContent = d.high_urgency_expenses || 0;
+      document.getElementById('iRec').textContent = d.distinct_recurring_merchants || 0;
+      document.getElementById('iCats').textContent = Object.keys(d.category_wise_spending || {}).length;
+
+      if (d.savings_warning) {
+        document.getElementById('sw').innerHTML = `<div class="ibox">💡 ${d.savings_warning}</div>`;
+        document.getElementById('swCard').style.display = 'block';
+      }
+
+      if (d.daily_trend_plotly) {
+        const lineObj = JSON.parse(d.daily_trend_plotly);
+        Plotly.newPlot('dailyTrendChart', lineObj.data, lineObj.layout, {responsive: true, displayModeBar: false});
+      }
+
+      // Render Plotly Charts from Backend JSON
+      if (d.bar_chart_plotly) {
+        const barObj = JSON.parse(d.bar_chart_plotly);
+        Plotly.newPlot('catChart', barObj.data, barObj.layout, {responsive: true, displayModeBar: false});
+      }
+      if (d.pie_chart_plotly) {
+        const pieObj = JSON.parse(d.pie_chart_plotly);
+        Plotly.newPlot('pieChart', pieObj.data, pieObj.layout, {responsive: true, displayModeBar: false});
+      }
+
+      buildCatBreakdown(d.category_wise_spending || {}, d.total_spent || 0);
+    } catch (e) { console.error('Insights error:', e); }
+  }
+
+  function buildCatBreakdown(catSpend, total) {
+    const el = document.getElementById('catBreakdown');
+    if (!el) return;
+    const sorted = Object.entries(catSpend).sort((a, b) => b[1] - a[1]);
+    el.innerHTML = sorted.map(([cat, amt]) => {
+      // Map labels like "red" to your urgency logic
+      const urg = getCatUrgencyColor(cat); 
+      return `
+        <div class="cbd">
+          <div class="cbd-dot" style="background:${urg.hex}"></div>
+          <div class="cbd-name" style="text-transform: capitalize;">${cat}</div>
+          <div style="text-align:right">
+            <div class="cbd-amt" style="color:${urg.hex}">₹${parseFloat(amt).toFixed(0)}</div>
+            <div class="cbd-pct">${total > 0 ? ((amt / total) * 100).toFixed(1) : 0}%</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+</script>
+</body>
+</html>

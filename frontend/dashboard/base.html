@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFinance — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+
+  <style>
+    /* ======================================================
+       BASE STYLES — shared across all tabs
+    ====================================================== */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    :root {
+      --p: #4338CA;
+      --pl: #6366F1;
+      --pg: rgba(67, 56, 202, 0.10);
+      --ac: #06B6D4;
+      --ok: #10B981;
+      --wn: #F59E0B;
+      --er: #EF4444;
+      --bg: #F0F4FF;
+      --sf: #FFFFFF;
+      --s2: #F5F7FF;
+      --s3: #EBF0FF;
+      --bd: #E2E8F8;
+      --bd2: #C7D2F0;
+      --t1: #0D1535;
+      --t2: #435085;
+      --t3: #8894C2;
+      --nav: 72px;
+      --r: 18px;
+      --r2: 11px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    * {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    *::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* NAV */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav);
+      background: rgba(255, 255, 255, 0.97);
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      z-index: 200;
+      backdrop-filter: blur(20px);
+      gap: 8px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+      margin-right: 20px;
+    }
+
+    .bico {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 5px 14px rgba(67, 56, 202, 0.3);
+    }
+
+    .bname {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--t1);
+      letter-spacing: -0.3px;
+    }
+
+    .bname b {
+      color: var(--p);
+    }
+
+    .ntabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .ntab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: var(--r2);
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--t2);
+      text-decoration: none;
+      background: transparent;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+
+    .ntab:hover {
+      background: var(--s2);
+      color: var(--t1);
+    }
+
+    .ntab.active {
+      background: var(--p);
+      color: #fff;
+    }
+
+    .ntab svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .nav-r {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .wbal-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px 8px 12px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .wd {
+      width: 8px;
+      height: 8px;
+      background: var(--ok);
+      border-radius: 50%;
+    }
+
+    .wbal {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+
+    .ico-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--r2);
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      color: var(--t2);
+      transition: 0.15s;
+      flex-shrink: 0;
+    }
+
+    .ico-btn:hover {
+      background: var(--bd);
+      color: var(--t1);
+    }
+
+    .ico-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .nbadge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--er);
+      color: #fff;
+      border-radius: 10px;
+      min-width: 18px;
+      height: 18px;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 3px;
+    }
+
+    .pdw {
+      position: relative;
+    }
+
+    .pchip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px 6px 6px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .pchip:hover {
+      border-color: var(--p);
+    }
+
+    .qr-action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* Two equal columns */
+      gap: 10px; /* Space between buttons */
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    /* Laptop Camera Preview Fix */
+    #qrReader video {
+        transform: scaleX(1) !important; /* Force no-mirroring for laptop */
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .pava {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--p), var(--ac));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      border: 1.5px solid var(--sf);
+    }
+
+    .pname {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .pmenu {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 240px;
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      box-shadow: 0 16px 48px rgba(13, 21, 53, 0.14);
+      overflow: hidden;
+      z-index: 300;
+    }
+
+    .pm-hdr {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--bd);
+      background: var(--s2);
+    }
+
+    .pm-nm {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .pm-tp {
+      font-size: 12px;
+      color: var(--t3);
+    }
+
+    .pm-it {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--t2);
+      transition: 0.15s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .pm-it:hover {
+      background: var(--s2);
+      color: var(--t1);
+    }
+
+    .pm-it svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .pm-div {
+      border-top: 1px solid var(--bd);
+      margin: 4px 0;
+    }
+
+    .pm-danger {
+      color: var(--er) !important;
+    }
+
+    .pm-danger:hover {
+      background: rgba(239, 68, 68, 0.07) !important;
+    }
+
+    .notif-pn {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 340px;
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      box-shadow: 0 16px 48px rgba(13, 21, 53, 0.14);
+      overflow: hidden;
+      z-index: 300;
+    }
+
+    .nh {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--bd);
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nh-clear {
+      font-size: 12px;
+      color: var(--p);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .ni {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--bd);
+      position: relative;
+    }
+
+    .ni.unread {
+      background: rgba(67, 56, 202, 0.04);
+    }
+
+    .ni.unread::before {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 8px;
+      width: 6px;
+      height: 6px;
+      background: var(--p);
+      border-radius: 50%;
+    }
+
+    .ni:last-child {
+      border-bottom: none;
+    }
+
+    /* LAYOUT */
+    .main {
+      padding-top: var(--nav);
+      min-height: 100vh;
+    }
+
+    .content {
+      padding: 26px 30px 140px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    /* SHARED COMPONENTS */
+    .card {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 22px;
+    }
+
+    .chdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .ctitle {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .ctag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 30px;
+      background: var(--pg);
+      color: var(--p);
+    }
+
+    .empty {
+      padding: 36px;
+      text-align: center;
+      color: var(--t3);
+      font-size: 13px;
+    }
+
+    .ei {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: 'Outfit', sans-serif;
+      border: none;
+    }
+
+    .bp {
+      background: var(--p);
+      color: #fff;
+      width: 100%;
+    }
+
+    .bp:hover {
+      background: #3730A3;
+      box-shadow: 0 6px 18px rgba(67, 56, 202, 0.3);
+    }
+
+    .bs {
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      color: var(--t1);
+    }
+
+    .bs:hover {
+      border-color: var(--p);
+      color: var(--p);
+    }
+
+    .bsm {
+      padding: 9px 16px;
+      font-size: 12.5px;
+      width: auto !important;
+    }
+
+    .fg {
+      margin-bottom: 16px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t2);
+      margin-bottom: 7px;
+    }
+
+    .fg input,
+    .fg select {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      border-radius: var(--r2);
+      font-size: 14px;
+      color: var(--t1);
+      transition: 0.15s;
+      font-family: inherit;
+    }
+
+    .fg input:focus,
+    .fg select:focus {
+      outline: none;
+      border-color: var(--p);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+    }
+
+    .ibox {
+      display: flex;
+      gap: 10px;
+      padding: 13px 15px;
+      background: rgba(67, 56, 202, 0.05);
+      border: 1px solid rgba(67, 56, 202, 0.12);
+      border-radius: var(--r2);
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, var(--s2) 25%, var(--bd) 50%, var(--s2) 75%);
+      background-size: 200% 100%;
+      animation: shim 1.5s infinite;
+    }
+
+    @keyframes shim {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .phdr {
+      margin-bottom: 20px;
+    }
+
+    .phdr h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .phdr p {
+      font-size: 13px;
+      color: var(--t3);
+      margin-top: 3px;
+    }
+
+    .phdrr {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .div {
+      border-top: 1px solid var(--bd);
+      margin: 16px 0;
+    }
+
+    .txnr {
+      padding: 14px;
+      border-radius: var(--r2);
+      margin-top: 14px;
+      font-size: 13px;
+    }
+
+    .txnr.ok {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1.5px solid var(--ok);
+      color: #047857;
+    }
+
+    .txnr.err {
+      background: rgba(239, 68, 68, 0.06);
+      border: 1.5px solid var(--er);
+      color: #b91c1c;
+    }
+
+    /* SHEETS */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 15, 30, 0.6);
+      z-index: 500;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .sheet {
+      background: var(--sf);
+      border-radius: 28px 28px 0 0;
+      width: 100%;
+      max-width: 700px;
+      padding: 26px;
+      max-height: 92vh;
+      overflow-y: auto;
+      animation: su 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .am-sheet {
+      background: var(--sf);
+      border-radius: 28px 28px 0 0;
+      width: 100%;
+      max-width: 480px;
+      padding: 28px;
+      animation: su 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes su {
+      from { transform: translateY(80px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .shandle {
+      width: 44px;
+      height: 5px;
+      background: var(--bd2);
+      border-radius: 3px;
+      margin: 0 auto 22px;
+    }
+
+    .shdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .stitle {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .sclose {
+      width: 34px;
+      height: 34px;
+      background: var(--s2);
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--t2);
+    }
+
+    /* SCAN & PAY */
+    .scan-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+    }
+
+    .qr-reader-box {
+      background: var(--s2);
+      border: 2px dashed var(--bd2);
+      border-radius: var(--r);
+      min-height: 280px;
+      overflow: hidden;
+    }
+
+    .sr-pill {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--ok);
+      padding: 10px 14px;
+      border-radius: var(--r2);
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 12px;
+    }
+
+    .pay-result-card {
+      border-radius: var(--r2);
+      margin-top: 14px;
+      overflow: hidden;
+      border: 2px solid;
+    }
+
+    .pay-result-card.success {
+      border-color: var(--ok);
+    }
+
+    .pay-result-card.failed {
+      border-color: var(--er);
+    }
+
+    .pay-result-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .pay-result-card.success .pay-result-top {
+      background: rgba(16, 185, 129, 0.07);
+    }
+
+    .pay-result-card.failed .pay-result-top {
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .pay-cat-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      border: 3px solid;
+    }
+
+    .pay-cat-circle.cat-red {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: #EF4444;
+    }
+
+    .pay-cat-circle.cat-orange {
+      background: rgba(249, 115, 22, 0.12);
+      border-color: #F97316;
+    }
+
+    .pay-cat-circle.cat-yellow {
+      background: rgba(234, 179, 8, 0.12);
+      border-color: #EAB308;
+    }
+
+    .pay-cat-circle.cat-green {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10B981;
+    }
+
+    .pay-result-info {
+      flex: 1;
+    }
+
+    .pay-result-status {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .pay-result-bal {
+      font-size: 13px;
+      color: var(--t2);
+    }
+
+    .pay-result-bal span {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .pay-result-bottom {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid var(--bd);
+      background: var(--s2);
+    }
+
+    .urgency-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .urgency-pill.critical {
+      background: rgba(239, 68, 68, 0.12);
+      color: #DC2626;
+    }
+
+    .urgency-pill.necessary {
+      background: rgba(249, 115, 22, 0.12);
+      color: #EA580C;
+    }
+
+    .urgency-pill.discretionary {
+      background: rgba(234, 179, 8, 0.12);
+      color: #CA8A04;
+    }
+
+    .urgency-pill.low {
+      background: rgba(16, 185, 129, 0.10);
+      color: #059669;
+    }
+
+    .urgency-label {
+      font-size: 12px;
+      color: var(--t3);
+    }
+
+    /* FABs */
+    .fab-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 400;
+    }
+
+    .fcen {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(67, 56, 202, 0.45);
+      transition: 0.2s;
+    }
+
+    .fcen:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 30px rgba(67, 56, 202, 0.55);
+    }
+
+    .fcen svg {
+      width: 26px;
+      height: 26px;
+      color: #fff;
+    }
+
+    .qr-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 84px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--sf);
+      border: 1.5px solid var(--bd);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(13, 21, 53, 0.12);
+      z-index: 400;
+      transition: 0.2s;
+      color: var(--t2);
+    }
+
+    .qr-fab:hover {
+      border-color: var(--p);
+      color: var(--p);
+    }
+
+    .qr-fab svg {
+      width: 21px;
+      height: 21px;
+    }
+
+    .qr-pop {
+      position: fixed;
+      bottom: 84px;
+      right: 84px;
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 20px;
+      width: 230px;
+      box-shadow: 0 16px 48px rgba(13, 21, 53, 0.16);
+      z-index: 400;
+    }
+
+    .qpophdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .qpoptitle {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .qpop-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--t3);
+      font-size: 20px;
+    }
+
+    .qpop-img {
+      width: 100%;
+      border-radius: var(--r2);
+      border: 1px solid var(--bd);
+    }
+
+    .qpop-id {
+      font-size: 10px;
+      color: var(--t3);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 10px;
+      word-break: break-all;
+    }
+
+    .chat-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 22px rgba(67, 56, 202, 0.4);
+      z-index: 400;
+      transition: 0.2s;
+    }
+
+    .chat-fab:hover {
+      transform: scale(1.07);
+    }
+
+    .chat-fab svg {
+      width: 22px;
+      height: 22px;
+      color: #fff;
+    }
+
+    /* CHAT PANEL */
+    .cpanel {
+      position: fixed;
+      bottom: 88px;
+      right: 24px;
+      width: 360px;
+      height: 480px;
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(13, 21, 53, 0.18);
+      display: flex;
+      flex-direction: column;
+      z-index: 399;
+      overflow: hidden;
+      transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: bottom right;
+    }
+
+    .cpanel.hidden {
+      opacity: 0;
+      transform: scale(0.88);
+      pointer-events: none;
+    }
+
+    .c-hdr {
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .cava {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .cinfo {
+      flex: 1;
+    }
+
+    .cnm {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .cst {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .csdot {
+      width: 6px;
+      height: 6px;
+      background: #10B981;
+      border-radius: 50%;
+    }
+
+    .cclose {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .cmsgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg);
+    }
+
+    .cmsg {
+      display: flex;
+      gap: 8px;
+      max-width: 90%;
+    }
+
+    .cmsg.bot {
+      align-self: flex-start;
+    }
+
+    .cmsg.usr {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .mava {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--p);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .mava.u {
+      background: var(--s3);
+    }
+
+    .mbub {
+      padding: 9px 13px;
+      border-radius: 13px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .cmsg.bot .mbub {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-top-left-radius: 3px;
+    }
+
+    .cmsg.usr .mbub {
+      background: var(--p);
+      color: #fff;
+      border-top-right-radius: 3px;
+    }
+
+    .typing {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--t3);
+      border-radius: 50%;
+      animation: dots 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes dots {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .cinp-wrap {
+      padding: 13px;
+      border-top: 1px solid var(--bd);
+      background: var(--sf);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .cinp {
+      flex: 1;
+      padding: 10px 13px;
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      border-radius: 11px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .cinp:focus {
+      border-color: var(--p);
+    }
+
+    .cinp::placeholder {
+      color: var(--t3);
+    }
+
+    .csend {
+      width: 36px;
+      height: 36px;
+      background: var(--p);
+      border: none;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .csend:hover {
+      background: #3730A3;
+    }
+
+    .csend svg {
+      width: 15px;
+      height: 15px;
+      color: #fff;
+    }
+
+    /* NUDGE */
+    .nudge {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      max-width: 320px;
+      z-index: 600;
+    }
+
+    .nudge-in {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-left: 4px solid var(--p);
+      border-radius: var(--r);
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(13, 21, 53, 0.12);
+      position: relative;
+    }
+
+    .nudge-x {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      background: var(--s2);
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--t3);
+    }
+
+    .nudge-tag {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--p);
+      margin-bottom: 5px;
+    }
+
+    .nudge-msg {
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.6;
+      padding-right: 18px;
+    }
+
+    @media (max-width: 640px) {
+      .ntabs { display: none; }
+      .content { padding: 18px 16px 140px; }
+      .nav { padding: 0 18px; }
+      .scan-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       OVERVIEW TAB
+    ============================================================ */
+    .aibar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(67, 56, 202, 0.07), rgba(6, 182, 212, 0.05));
+      border: 1px solid rgba(67, 56, 202, 0.15);
+      border-radius: var(--r);
+      margin-bottom: 20px;
+    }
+
+    .ai-ico {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .ai-txt {
+      font-size: 13.5px;
+      color: var(--t2);
+      flex: 1;
+      line-height: 1.6;
+    }
+
+    .ai-txt strong {
+      color: var(--p);
+    }
+
+    .ov-stats {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .ov-stats { grid-template-columns: 1fr 1fr; }
+      .bal-card { grid-column: 1 / -1; }
+    }
+
+    .bal-card {
+      background: linear-gradient(145deg, #1e1b6e 0%, var(--p) 50%, #818CF8 100%);
+      border-radius: var(--r);
+      padding: 28px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bal-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 220px;
+      height: 220px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+    }
+
+    .bal-card::after {
+      content: '';
+      position: absolute;
+      bottom: -50px;
+      left: 10px;
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 50%;
+    }
+
+    .bl {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      opacity: 0.65;
+      margin-bottom: 8px;
+    }
+
+    .bamt {
+      font-size: 44px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bid {
+      font-size: 10px;
+      opacity: 0.55;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 14px;
+    }
+
+    .bbadges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 30px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .bdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+      animation: pulsedot 2s infinite;
+    }
+
+    @keyframes pulsedot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .bbtns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bbtn {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--r2);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    .bbtn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .sc {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 20px;
+    }
+
+    .sc-tp {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .sc-ico {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--r2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .ic-g { background: rgba(16, 185, 129, 0.12); }
+    .ic-r { background: rgba(239, 68, 68, 0.08); }
+    .ic-y { background: rgba(245, 158, 11, 0.12); }
+
+    .sbadge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 30px;
+    }
+
+    .sb-up { background: rgba(16, 185, 129, 0.1); color: var(--ok); }
+    .sb-dn { background: rgba(239, 68, 68, 0.08); color: var(--er); }
+    .sb-nu { background: rgba(245, 158, 11, 0.1); color: var(--wn); }
+
+    .sval {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .slbl {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .ait {
+      display: flex;
+      gap: 12px;
+      padding: 13px 15px;
+      border-radius: var(--r2);
+      margin-bottom: 10px;
+      border-left: 4px solid;
+    }
+
+    .ait.w {
+      background: rgba(245, 158, 11, 0.05);
+      border-color: var(--wn);
+    }
+
+    .ait.d {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: var(--er);
+    }
+
+    .attl {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .amsg {
+      font-size: 12px;
+      color: var(--t2);
+    }
+
+    /* ============================================================
+       INSIGHTS TAB
+    ============================================================ */
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .pbtn {
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1.5px solid var(--bd);
+      background: var(--s2);
+      color: var(--t2);
+      cursor: pointer;
+      transition: 0.15s;
+      font-family: inherit;
+    }
+
+    .pbtn:hover {
+      border-color: var(--p);
+      color: var(--p);
+      background: var(--sf);
+    }
+
+    .pbtn.active {
+      border-color: var(--p);
+      background: var(--p);
+      color: #fff;
+    }
+
+    .itiles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .itiles { grid-template-columns: 1fr 1fr; }
+    }
+
+    .itile {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r);
+      padding: 18px;
+    }
+
+    .itlbl {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .itval {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cbd {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .cbd:last-child {
+      border-bottom: none;
+    }
+
+    .cbd-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cbd-name {
+      font-size: 13px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .cbd-amt {
+      font-size: 13px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cbd-pct {
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    /* ============================================================
+       LIMITS TAB
+    ============================================================ */
+    .sc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .sc-grid { grid-template-columns: 1fr; }
+    }
+
+    .lim {
+      padding: 16px;
+      background: var(--s2);
+      border-radius: var(--r2);
+      margin-bottom: 10px;
+      border: 1px solid var(--bd);
+    }
+
+    .lim:last-child {
+      margin-bottom: 0;
+    }
+
+    .lhdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .lcat {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .lpct {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 30px;
+    }
+
+    .lpct.safe {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--ok);
+    }
+
+    .lpct.warn {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--wn);
+    }
+
+    .lpct.danger {
+      background: rgba(239, 68, 68, 0.10);
+      color: var(--er);
+    }
+
+    .lbar {
+      height: 10px;
+      background: var(--bd);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .lfill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lnums {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 600;
+    }
+
+    /* ============================================================
+       SAVINGS TAB
+    ============================================================ */
+    .stiles3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stiles2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stile {
+      padding: 16px;
+      background: var(--s2);
+      border-radius: var(--r2);
+    }
+
+    .stlbl {
+      font-size: 11px;
+      color: var(--t3);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+    }
+
+    .stval {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--ok);
+    }
+
+    .inv-readiness {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--r2);
+      margin-bottom: 14px;
+    }
+
+    .inv-readiness.stable {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .inv-readiness.cautious {
+      background: rgba(245, 158, 11, 0.07);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .inv-readiness.needs_improvement {
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .inv-ri-ico {
+      font-size: 28px;
+    }
+
+    .inv-ri-label {
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+
+    .inv-ri-desc {
+      font-size: 12px;
+      color: var(--t2);
+    }
+
+    .inv-risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--pg);
+      color: var(--p);
+      margin-bottom: 14px;
+    }
+
+    .inv-reason {
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.6;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      background: var(--s2);
+      border-radius: var(--r2);
+    }
+
+    .inv-opts-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t3);
+      margin-bottom: 10px;
+    }
+
+    .inv-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: var(--r2);
+      margin-bottom: 8px;
+    }
+
+    .inv-opt:last-child {
+      margin-bottom: 0;
+    }
+
+    .inv-opt-ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      background: var(--pg);
+      flex-shrink: 0;
+    }
+
+    .inv-opt-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--t1);
+    }
+
+    .inv-opt-type {
+      font-size: 11px;
+      color: var(--t3);
+    }
+
+    /* ============================================================
+       PROFILE TAB
+    ============================================================ */
+    .pfr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .pfr:last-child {
+      border-bottom: none;
+    }
+
+    .pfl {
+      font-size: 12px;
+      color: var(--t3);
+      font-weight: 600;
+    }
+
+    .pfv {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* ============================================================
+       SHARED TWO-COL LAYOUT
+    ============================================================ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NUDGE -->
+<div id="nudgePopup" class="nudge hidden">
+  <div class="nudge-in">
+    <button class="nudge-x" onclick="closeNudge()">×</button>
+    <div class="nudge-tag">✦ AI Insight</div>
+    <div class="nudge-msg" id="nudgeMsg"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<header class="nav">
+  <a class="nav-brand" href="#">
+    <div class="bico">💰</div>
+    <div class="bname">Smart<b>Finance</b></div>
+  </a>
+  <nav class="ntabs">
+    <a class="ntab active" data-tab="overview" href="#" onclick="go(event,'overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Overview
+    </a>
+    <a class="ntab" data-tab="transactions" href="#" onclick="go(event,'transactions')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Transactions
+    </a>
+    <a class="ntab" data-tab="insights" href="#" onclick="go(event,'insights')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Insights
+    </a>
+    <a class="ntab" data-tab="limits" href="#" onclick="go(event,'limits')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Limits
+    </a>
+    <a class="ntab" data-tab="savings" href="#" onclick="go(event,'savings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Savings
+    </a>
+  </nav>
+  <div class="nav-r">
+    <div class="wbal-pill"><div class="wd"></div><span class="wbal" id="navBal">₹—</span></div>
+    <div style="position:relative" id="notifW">
+      <button class="ico-btn" onclick="toggleNotif()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="nbadge" class="nbadge hidden">0</span>
+      </button>
+      <div id="notifPn" class="notif-pn hidden">
+        <div class="nh"><span>Notifications</span><span class="nh-clear" onclick="clearNotifUnread()">Mark all read</span></div>
+        <div id="nlist" style="max-height:360px;overflow-y:auto"><div class="empty">No notifications yet</div></div>
+      </div>
+    </div>
+    <div class="pdw" id="pdW">
+      <div class="pchip" onclick="togglePMenu()">
+        <div class="pava" id="navAva">SF</div>
+        <span class="pname" id="navNm">Loading…</span>
+        <svg style="width:13px;height:13px;color:var(--t3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="pmenu" class="pmenu hidden">
+        <div class="pm-hdr"><div class="pm-nm" id="pmNm">—</div><div class="pm-tp" id="pmTp">User</div></div>
+        <button class="pm-it" onclick="goProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile &amp; Account</button>
+        <button class="pm-it" onclick="showAddMoney()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Add Money</button>
+        <div class="pm-div"></div>
+        <button class="pm-it pm-danger" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- CONTENT — each tab pane is empty here; tab HTML files fill them -->
+<main class="main">
+  <div class="content">
+    <div id="overviewTab" class="tab active"></div>
+    <div id="transactionsTab" class="tab"></div>
+    <div id="insightsTab" class="tab"></div>
+    <div id="limitsTab" class="tab"></div>
+    <div id="savingsTab" class="tab"></div>
+    <div id="profileTab" class="tab"></div>
+  </div>
+</main>
+
+<!-- SCAN & PAY SHEET -->
+<div id="spOverlay" class="overlay hidden" onclick="closeSPOut(event)">
+  <div class="sheet">
+    <div class="shandle"></div>
+    <div class="shdr"><span class="stitle">📱 Scan &amp; Pay</span><button class="sclose" onclick="closeSP()">×</button></div>
+    <div class="scan-grid">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Camera Scanner</div>
+        <div id="qrReader" class="qr-reader-box"></div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button id="scanStart" class="btn bp bsm" onclick="startScan()" style="flex:1">📷 Start Camera</button>
+          <button id="scanStop" class="btn bs bsm hidden" onclick="stopScan()">⏹ Stop</button>
+        </div>
+        <div id="scanRes" class="sr-pill hidden"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Payment Details</div>
+        <form onsubmit="pay(event)">
+          <div class="fg"><label>Receiver Wallet ID</label><input type="text" id="recvId" required placeholder="Scan QR or enter manually"></div>
+          <div class="fg"><label>Amount (₹)</label><input type="number" id="payAmt" step="0.01" required placeholder="0.00"></div>
+          <button type="submit" class="btn bp">💳 Send Payment</button>
+        </form>
+        <div id="confirmOverlay" class="overlay hidden" style="z-index: 1000;">
+          <div class="am-sheet" style="max-width: 400px; text-align: center;">
+            <div class="shandle"></div>
+            <div style="font-size: 40px; margin-bottom: 15px;">💸</div>
+            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 10px;">Confirm Payment</h3>
+            <p id="confirmMsg" style="color: var(--t2); font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <button class="btn bs" onclick="closeConfirm(false)">Cancel</button>
+              <button class="btn bp" onclick="closeConfirm(true)">Confirm & Pay</button>
+            </div>
+          </div>
+        </div>
+        <div id="payRes"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MONEY SHEET -->
+<div id="amOverlay" class="overlay hidden" onclick="closeAMOut(event)">
+  <div class="am-sheet">
+    <div class="shandle"></div>
+    <div class="shdr"><span class="stitle">💰 Add Money to Wallet</span><button class="sclose" onclick="closeAM()">×</button></div>
+    <div style="margin-bottom:20px;padding:16px;background:var(--s2);border-radius:var(--r2);font-size:13px;color:var(--t2)">
+      Current Balance: <strong style="font-family:'JetBrains Mono',monospace;color:var(--t1)" id="amCurrentBal">₹—</strong>
+    </div>
+    <div class="fg"><label>Amount to Add (₹)</label><input type="number" id="amAmt2" step="0.01" min="0.01" placeholder="Enter amount"></div>
+    <button class="btn bp" onclick="addMoneyConfirm()">Add to Wallet</button>
+    <div id="amRes" class="txnr hidden"></div>
+  </div>
+</div>
+
+<!-- FABs -->
+<div class="fab-bar">
+  <button class="fcen" onclick="openSP()" title="Scan &amp; Pay">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h2v2M15 19h4M19 15v4"/></svg>
+  </button>
+</div>
+<button class="qr-fab" onclick="toggleQRPop()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/></svg>
+</button>
+<div id="qrPop" class="qr-pop hidden">
+  <div class="qpophdr">
+    <span class="qpoptitle">My QR Code</span>
+    <button class="qpop-close" onclick="closeQRPop()">×</button>
+  </div>
+  <img id="qrPopImg" class="qpop-img" src="" alt="QR">
+  <div class="qr-action-row">
+    <button class="btn bs bsm" onclick="dlQR()" style="width:100%">📥 Download</button>
+    <button class="btn bs bsm" onclick="shareQR()" style="width:100%">🔗 Share</button>
+  </div>
+  <div class="qpop-id" id="qrPopId">—</div>
+</div>
+
+<!-- CHAT -->
+<button class="chat-fab" onclick="toggleChat()" id="chatFab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+<div id="chatPanel" class="cpanel hidden">
+  <div class="c-hdr">
+    <div class="cava">🤖</div>
+    <div class="cinfo"><div class="cnm">AI Financial Coach</div><div class="cst"><div class="csdot"></div>Online · Always available</div></div>
+    <button class="cclose" onclick="toggleChat()">×</button>
+  </div>
+  <div class="cmsgs" id="cmsgs">
+    <div class="cmsg bot"><div class="mava">🤖</div><div class="mbub">Hi! I'm your AI Financial Coach. Ask me anything about your spending, savings, or investment strategy!</div></div>
+  </div>
+  <form class="cinp-wrap" onsubmit="sendChat(event)">
+    <input class="cinp" id="cInp" placeholder="Ask about your finances…">
+    <button class="csend" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </form>
+</div>
+
+<script>
+  // =====================================================================
+  //  GLOBALS
+  // =====================================================================
+  const API = 'http://127.0.0.1:8000';
+  let pType = localStorage.getItem('profileType') || 'user';
+  let userId = localStorage.getItem('userId') || null;
+  let vendorId = localStorage.getItem('vendorId') || null;
+  let prof = null, notifs = [], qrScan = null;
+  let chatOpen = false, qrPopOpen = false;
+  let unreadCount = 0;
+  let confirmResolver;
+
+  const URGENCY_COLORS = {
+    critical: { cls: 'cat-red', emoji: '🔴', hex: '#EF4444', label: 'Critical' },
+    necessary: { cls: 'cat-orange', emoji: '🟠', hex: '#F97316', label: 'Necessary' },
+    discretionary: { cls: 'cat-yellow', emoji: '🟡', hex: '#EAB308', label: 'Discretionary' },
+    income: { cls: 'cat-green', emoji: '🟢', hex: '#10B981', label: 'Received' } // Add this!
+  };
+  const CAT_COLOR_TO_URGENCY = { red: 'critical', orange: 'necessary', yellow: 'discretionary', green: 'low' };
+  
+  function getCatUrgencyColor(input) {
+    // 1. If input is a full transaction object (from Transactions tab)
+    if (typeof input === 'object' && input !== null) {
+        if (input.type === "Received") return URGENCY_COLORS.income;
+        input = input.urgency || ''; 
+    }
+
+    // 2. Normalize string (works for "red" or "Entertainment")
+    const k = (input || '').toLowerCase().trim().replace(/\s+/g, '_');
+
+    // 3. Direct Color Match (from DB urgency column)
+    if (k === 'red' || k === 'critical') return URGENCY_COLORS.critical;
+    if (k === 'orange' || k === 'necessary') return URGENCY_COLORS.necessary;
+    if (k === 'yellow' || k === 'discretionary') return URGENCY_COLORS.discretionary;
+
+    // 4. Category Keyword Match (for Insights tab labels)
+    let u = 'discretionary';
+    for (const [key, val] of Object.entries(CATEGORY_URGENCY_MAP)) {
+        if (k.includes(key) || key.includes(k)) {
+            u = val;
+            break;
+        }
+    }
+    return URGENCY_COLORS[u] || URGENCY_COLORS.discretionary;
+  }
+
+
+  function getCatChartColor(n) { return getCatUrgencyColor(n).hex; }
+
+  function today() { return new Date().toISOString().split('T')[0]; }
+
+  function fom() {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split('T')[0];
+  }
+
+  function monthLabel() { return new Date().toLocaleString('default', { month: 'long', year: 'numeric' }); }
+
+  function dateRange(p) {
+    const sd = new Date(), ed = new Date();
+    if (p === 'month') { sd.setDate(1); } else if (p === 'last') { sd.setMonth(sd.getMonth() - 1, 1); ed.setDate(0); } else if (p === '2months') { sd.setMonth(sd.getMonth() - 2, 1); } else if (p === '6months') { sd.setMonth(sd.getMonth() - 6, 1); }
+    return { sd: sd.toISOString().split('T')[0], ed: ed.toISOString().split('T')[0] };
+  }
+
+  function fmtTxnDate(ts) {
+    if (!ts) return { date: '—', time: '' };
+    const d = new Date(ts), now = new Date(), yest = new Date(now);
+    yest.setDate(now.getDate() - 1);
+    const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const date = d.toDateString() === now.toDateString() ? 'Today' : d.toDateString() === yest.toDateString() ? 'Yesterday' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    return { date, time };
+  }
+
+  function fmtNudgeTime(ts) {
+    if (!ts) return '';
+    try {
+      const d = new Date(ts), now = new Date(), yest = new Date(now);
+      yest.setDate(now.getDate() - 1);
+      const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      if (d.toDateString() === now.toDateString()) return 'Today · ' + time;
+      if (d.toDateString() === yest.toDateString()) return 'Yesterday · ' + time;
+      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' · ' + time;
+    } catch (e) { return ts; }
+  }
+
+  // =====================================================================
+  //  TABS
+  // =====================================================================
+  function go(e, tab) {
+    if (e) e.preventDefault();
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
+    document.getElementById(tab + 'Tab')?.classList.add('active');
+    if (tab === 'transactions' && pType === 'user') fetchTxns();
+  }
+
+  function goProfile() {
+    closePMenu();
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
+    document.getElementById('profileTab').classList.add('active');
+  }
+
+  // =====================================================================
+  //  PROFILE
+  // =====================================================================
+  async function loadProf() {
+    const ep = pType === 'user'
+      ? `${API}/auth/users/profile/${userId}`
+      : `${API}/auth/vendors/profile/${vendorId}`;
+    try {
+      const d = await (await fetch(ep)).json();
+      prof = d;
+      const nm = d.username || d.business_name || 'User';
+      document.getElementById('navNm').textContent = nm;
+      document.getElementById('navAva').textContent = nm.slice(0, 2).toUpperCase();
+      document.getElementById('pmNm').textContent = nm;
+      document.getElementById('pmTp').textContent = pType === 'user' ? '👤 User' : '🏪 Vendor';
+      const bal = d.wallet.balance.toFixed(2);
+      ['navBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
+      ['walBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
+      ['walId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `Wallet ID: ${d.wallet.wallet_id}`; });
+      ['ovInc'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${(d.income || 0).toFixed(0)}`; });
+      ['amCurrentBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
+      const rb = document.getElementById('riskBadge');
+      if (rb) {
+        const r = d.risk_tolerance || 'medium';
+        rb.textContent = `⚖️ ${r[0].toUpperCase() + r.slice(1)} Risk`;
+      }
+      const qurl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(d.wallet.wallet_id)}`;
+      ['qrImg', 'qrPopImg'].forEach(id => { const e = document.getElementById(id); if (e) e.src = qurl; });
+      ['qrId', 'qrPopId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = d.wallet.wallet_id; });
+      renderProfDets(d);
+    } catch (e) { console.error('Profile error:', e); }
+  }
+
+  // =====================================================================
+  //  NAV DROPDOWNS
+  // =====================================================================
+  function togglePMenu() { document.getElementById('pmenu').classList.toggle('hidden'); document.getElementById('notifPn').classList.add('hidden'); }
+
+  function closePMenu() { document.getElementById('pmenu').classList.add('hidden'); }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#pdW')) closePMenu();
+    if (!e.target.closest('#notifW')) document.getElementById('notifPn')?.classList.add('hidden');
+    if (!e.target.closest('.qr-fab') && !e.target.closest('.qr-pop')) closeQRPop();
+  });
+
+  // =====================================================================
+  //  NOTIFICATIONS
+  // =====================================================================
+  function addNotif(type, msg, ts) {
+    if (notifs.some(n => n.msg === msg && n.type === type)) return;
+    notifs.unshift({ type, msg, time: ts || new Date().toLocaleTimeString(), unread: true });
+    unreadCount++;
+    updateBadge();
+    renderNotifList();
+  }
+
+  function updateBadge() {
+    const b = document.getElementById('nbadge');
+    if (unreadCount > 0) {
+      b.classList.remove('hidden');
+      b.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    } else b.classList.add('hidden');
+  }
+
+  function renderNotifList() {
+    const el = document.getElementById('nlist');
+    if (!notifs.length) {
+      el.innerHTML = '<div class="empty"><div style="font-size:28px;margin-bottom:8px">🔔</div>No nudges yet</div>';
+      return;
+    }
+    el.innerHTML = notifs.slice(0, 20).map(n => `
+      <div class="ni ${n.unread ? 'unread' : ''}" style="padding:13px 18px 13px 22px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,rgba(67,56,202,0.12),rgba(99,102,241,0.08));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✦</div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">AI Nudge</div>
+            <div style="font-size:13px;color:var(--t1);line-height:1.55;font-weight:${n.unread ? '600' : '400'}">${n.msg}</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:5px">🕐 ${n.time}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function clearNotifUnread() { notifs.forEach(n => n.unread = false); unreadCount = 0; updateBadge(); renderNotifList(); }
+
+  function toggleNotif() {
+    const pn = document.getElementById('notifPn');
+    const wasHidden = pn.classList.contains('hidden');
+    pn.classList.toggle('hidden');
+    document.getElementById('pmenu').classList.add('hidden');
+    if (wasHidden) fetchNudgeHistory();
+  }
+
+  async function fetchNudgeHistory() {
+    if (pType !== 'user' || !userId) return;
+    try {
+      const r = await fetch(`${API}/nudges/history/${userId}`);
+      if (!r.ok) return;
+      const d = await r.json();
+      const items = Array.isArray(d) ? d : d.nudges || d.history || [];
+      for (const item of items.slice(0, 20)) {
+        const msg = item.message || item.nudge || item.text || item.content || '';
+        const ts = item.timestamp || item.created_at || item.date || '';
+        if (!msg) continue;
+        if (!notifs.some(n => n.msg === msg)) notifs.push({ type: 'nudge', msg, time: fmtNudgeTime(ts) || 'Earlier', unread: false });
+      }
+      notifs.sort((a, b) => (b.unread ? 1 : 0) - (a.unread ? 1 : 0));
+      renderNotifList();
+    } catch (e) { }
+  }
+
+  async function fetchNudges() {
+    if (pType !== 'user' || !userId) return;
+    try {
+      const d = await (await fetch(`${API}/nudges/run/${userId}`, { method: 'POST' })).json();
+      if (d.nudge) { addNotif('nudge', d.nudge, fmtNudgeTime(new Date().toISOString())); showNudge(d.nudge); }
+    } catch (e) { }
+  }
+
+  function showNudge(msg) { document.getElementById('nudgeMsg').textContent = msg; document.getElementById('nudgePopup').classList.remove('hidden'); setTimeout(() => document.getElementById('nudgePopup').classList.add('hidden'), 7000); }
+
+  function closeNudge() { document.getElementById('nudgePopup').classList.add('hidden'); }
+
+  function startNudges() { fetchNudges(); setInterval(fetchNudges, 30 * 60 * 1000); }
+
+  // =====================================================================
+  //  QR POPOVER
+  // =====================================================================
+  function toggleQRPop() { qrPopOpen = !qrPopOpen; document.getElementById('qrPop').classList.toggle('hidden', !qrPopOpen); }
+
+  function closeQRPop() { qrPopOpen = false; document.getElementById('qrPop')?.classList.add('hidden'); }
+
+  function showQRPop() { qrPopOpen = true; document.getElementById('qrPop').classList.remove('hidden'); }
+
+  async function dlQR() {
+    if (!prof) return;
+    const qrUrl = document.getElementById('qrPopImg').src;
+    try {
+        const response = await fetch(qrUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SmartFinance-QR.png`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (e) { console.error("Download failed", e); }
+ }
+
+  async function shareQR() {
+    if (!navigator.share) {
+        alert("Web Share not supported on this browser.");
+        return;
+    }
+    const qrUrl = document.getElementById('qrPopImg').src;
+    try {
+        const response = await fetch(qrUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'MyQR.png', { type: 'image/png' });
+        await navigator.share({
+            title: 'My SmartFinance QR',
+            text: `Wallet ID: ${prof.wallet.wallet_id}`,
+            files: [file]
+        });
+    } catch (e) { console.log("Sharing failed", e); }
+ }
+
+  // =====================================================================
+  //  LOGOUT
+  // =====================================================================
+  function handleLogout() {
+    closePMenu();
+    ['userId', 'vendorId', 'profileType'].forEach(k => localStorage.removeItem(k));
+    window.location.href = '/';
+  }
+
+  // =====================================================================
+  //  SCAN & PAY
+  // =====================================================================
+  function openSP() { document.getElementById('spOverlay').classList.remove('hidden'); }
+
+  function closeSP() {
+    document.getElementById('spOverlay').classList.add('hidden');
+    if (qrScan) stopScan();
+    
+    // Sab details clear kar do
+    document.getElementById('recvId').value = "";
+    document.getElementById('payAmt').value = "";
+    document.getElementById('payRes').innerHTML = ""; 
+    document.getElementById('scanRes').classList.add('hidden');
+  }
+
+  function closeSPOut(e) { if (e.target === document.getElementById('spOverlay')) closeSP(); }
+
+  function startScan() {
+    qrScan = new Html5Qrcode('qrReader');
+    const config = { 
+        fps: 15, // Smooth preview
+        qrbox: { width: 250, height: 250 }
+    }
+
+    qrScan.start(
+        { facingMode: "user" }, 
+        config,
+        (text) => {
+            document.getElementById('recvId').value = text;
+            const s = document.getElementById('scanRes');
+            s.textContent = `✅ Scanned: ${text}`;
+            s.classList.remove('hidden');
+            stopScan();
+        }
+    ).catch(() => alert("Camera error. Please enter ID manually.", err));
+    document.getElementById('scanStart').classList.add('hidden');
+    document.getElementById('scanStop').classList.remove('hidden');
+  }
+
+  function stopScan() {
+    if (qrScan) { qrScan.stop().then(() => { qrScan.clear(); qrScan = null; }); }
+    document.getElementById('scanStart')?.classList.remove('hidden');
+    document.getElementById('scanStop')?.classList.add('hidden');
+  }
+
+  function renderPayResult(d) {
+    const el = document.getElementById('payRes'); if (!el) return;
+    const urg = URGENCY_COLORS[CAT_COLOR_TO_URGENCY[(d.expense_category || '').toLowerCase()] || d.urgency?.toLowerCase() || 'discretionary'] || URGENCY_COLORS.discretionary;
+    const bal = parseFloat(d.remaining_balance || 0).toFixed(2);
+    el.innerHTML = `
+      <div class="pay-result-card success">
+        <div class="pay-result-top">
+          <div class="pay-cat-circle ${urg.cls}">${urg.emoji}</div>
+          <div class="pay-result-info">
+            <div class="pay-result-status" style="color:#047857">✅ Payment Successful</div>
+            <div class="pay-result-bal">New Balance: <span>₹${bal}</span></div>
+          </div>
+        </div>
+        <div class="pay-result-bottom"><span class="urgency-pill ${Object.keys(CAT_COLOR_TO_URGENCY).find(k => CAT_COLOR_TO_URGENCY[k] === Object.keys(URGENCY_COLORS).find(u => URGENCY_COLORS[u] === urg)) || 'discretionary'}">${urg.emoji} ${urg.label}</span><span class="urgency-label">expense category</span></div>
+      </div>`;
+  }
+
+  function renderPayError(msg) {
+    const el = document.getElementById('payRes'); if (!el) return;
+    el.innerHTML = `<div class="pay-result-card failed"><div class="pay-result-top"><div class="pay-cat-circle cat-red">❌</div><div class="pay-result-info"><div class="pay-result-status" style="color:#b91c1c">Payment Failed</div><div class="pay-result-bal" style="color:#b91c1c">${msg}</div></div></div></div>`;
+  }
+
+  // Function to show the custom modal and wait for a response
+  function showCustomConfirm(message) {
+    document.getElementById('confirmMsg').textContent = message;
+    document.getElementById('confirmOverlay').classList.remove('hidden');
+    return new Promise((resolve) => {
+      confirmResolver = resolve;
+    });
+  }
+
+  // Function called by the modal buttons
+  function closeConfirm(result) {
+    document.getElementById('confirmOverlay').classList.add('hidden');
+    if (confirmResolver) confirmResolver(result);
+  }
+
+  // Updated Pay Function
+  async function pay(e) {
+    e.preventDefault();
+    if (pType !== 'user') return;
+    
+    const amt = document.getElementById('payAmt').value;
+    const recv = document.getElementById('recvId').value;
+
+    // Replacement for the native confirm()
+    const confirmed = await showCustomConfirm(`Are you sure you want to send ₹${amt} to ${recv}?`);
+    if (!confirmed) return;
+
+    const fd = new FormData();
+    fd.append('user_id', userId);
+    fd.append('receiver_wallet_id', recv);
+    fd.append('amount', amt);
+
+    try {
+      const d = await (await fetch(`${API}/payments/scan-pay`, { method: 'POST', body: fd })).json();
+      if (d.transaction_id) {
+        renderPayResult(d);
+        playAIVoice(d.expense_category || 'yellow'); 
+        await loadProf();
+      } else {
+        renderPayError(d.detail || 'Unknown error');
+      }
+    } catch (err) { 
+      renderPayError('Network error.'); 
+    }
+  }
+
+  function playAIVoice(cat) {
+    const synth = window.speechSynthesis;
+    const voices = {
+        'red': "This is a critical expense. Be extremely careful with your remaining budget.",
+        'orange': "This is a necessary expense, but keep an eye out for cheaper alternatives.",
+        'yellow': "This is a discretionary expense. You should consider saving this money for your future instead."
+    };
+    const msg = new SpeechSynthesisUtterance(voices[cat.toLowerCase()] || "Transaction successful.");
+    msg.pitch = 1.2;
+    msg.rate = 1.0;
+    synth.speak(msg);
+  } 
+
+  // =====================================================================
+  //  ADD MONEY
+  // =====================================================================
+  async function addMoneyToWallet(amount) {
+    if (pType !== 'user') { alert('Only users can add money'); return null; }
+    try {
+      const fd = new FormData();
+      fd.append('user_id', userId);
+      fd.append('amount', amount);
+      const r = await fetch(`${API}/wallet/add-money`, { method: 'POST', body: fd });
+      const d = await r.json();
+      const newBal = d.wallet_balance ?? d.balance ?? d.new_balance ?? d.current_balance ?? d.wallet?.balance ?? null;
+      if (r.ok && newBal !== null && newBal !== undefined) {
+        const bal = parseFloat(newBal);
+        prof.wallet.balance = bal;
+        const s = `₹${bal.toFixed(2)}`;
+        ['navBal', 'walBal', 'amCurrentBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = s; });
+        return { ...d, wallet_balance: bal };
+      } else if (r.ok) { await loadProf(); return { wallet_balance: prof.wallet.balance }; } else throw new Error(d.detail || d.message || 'Failed');
+    } catch (e) { console.error(e); return null; }
+  }
+
+  async function addMoneyConfirm() {
+    const amt = parseFloat(document.getElementById('amAmt2').value);
+    if (!amt || amt <= 0) { alert('Enter a valid positive amount'); return; }
+    const rd = document.getElementById('amRes'); rd.classList.add('hidden');
+    const res = await addMoneyToWallet(amt);
+    rd.className = res ? 'txnr ok' : 'txnr err';
+    rd.innerHTML = res ? `✅ ₹${amt.toFixed(2)} added! New balance: ₹${res.wallet_balance.toFixed(2)}` : '❌ Failed. Please check your connection.';
+    if (res) document.getElementById('amAmt2').value = '';
+    rd.classList.remove('hidden');
+  }
+
+  async function addMoneyProfile() {
+    const amt = parseFloat(document.getElementById('amAmtProfile').value);
+    if (!amt || amt <= 0) { alert('Enter a valid amount'); return; }
+    const rd = document.getElementById('amProfRes'); rd.classList.add('hidden');
+    const res = await addMoneyToWallet(amt);
+    rd.className = res ? 'txnr ok' : 'txnr err';
+    rd.innerHTML = res ? `✅ ₹${amt.toFixed(2)} added! New balance: ₹${res.wallet_balance.toFixed(2)}` : '❌ Failed. Please try again.';
+    if (res) { document.getElementById('amAmtProfile').value = ''; renderProfDets(prof); }
+    rd.classList.remove('hidden');
+  }
+
+  function showAddMoney() { closePMenu(); document.getElementById('amOverlay').classList.remove('hidden'); }
+
+  function closeAM() { document.getElementById('amOverlay').classList.add('hidden'); document.getElementById('amRes').classList.add('hidden'); }
+
+  function closeAMOut(e) { if (e.target === document.getElementById('amOverlay')) closeAM(); }
+
+  // =====================================================================
+  //  CHAT
+  // =====================================================================
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    document.getElementById('chatPanel').classList.toggle('hidden', !chatOpen);
+    const fab = document.getElementById('chatFab');
+    if (chatOpen) {
+      fab.style.background = 'linear-gradient(135deg,#1e1b4b,#312e81)';
+      fab.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    } else {
+      fab.style.background = '';
+      fab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+    }
+  }
+
+  async function sendChat(e) {
+    e.preventDefault(); if (pType !== 'user') return;
+    const inp = document.getElementById('cInp'), msg = inp.value.trim(); if (!msg) return;
+    const msgs = document.getElementById('cmsgs');
+    msgs.innerHTML += `<div class="cmsg usr"><div class="mava u">👤</div><div class="mbub">${msg}</div></div>`;
+    inp.value = '';
+    const tid = 't' + Date.now();
+    msgs.innerHTML += `<div class="cmsg bot" id="${tid}"><div class="mava">🤖</div><div class="mbub"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+    try {
+      let r, d;
+      for (const ep of [
+        () => fetch(`${API}/coach/chat/${userId}?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
+        () => fetch(`${API}/coach/${userId}/chat?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
+        () => { const fd = new FormData(); fd.append('user_id', userId); fd.append('message', msg); return fetch(`${API}/coach/chat`, { method: 'POST', body: fd }); },
+        () => { const fd = new FormData(); fd.append('user_id', userId); fd.append('message', msg); return fetch(`${API}/coach/`, { method: 'POST', body: fd }); }
+      ]) {
+        try { r = await ep(); if (r.ok) { d = await r.json(); break; } } catch (ex) { continue; }
+      }
+      document.getElementById(tid)?.remove();
+      const reply = d ? (d.reply ?? d.response ?? d.message ?? d.answer ?? d.text ?? JSON.stringify(d)) : '⚠️ Coach service unavailable.';
+      msgs.innerHTML += `<div class="cmsg bot"><div class="mava">🤖</div><div class="mbub">${reply}</div></div>`;
+    } catch (err) { document.getElementById(tid)?.remove(); msgs.innerHTML += `<div class="cmsg bot"><div class="mava">🤖</div><div class="mbub">Connection issue. Please try again.</div></div>`; }
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  // =====================================================================
+  //  TAB LOADER — fetch each tab's HTML+JS and inject into its pane
+  // =====================================================================
+  const TAB_FILES = {
+    overview: '/dashboard/overview.html',
+    transactions: '/dashboard/transactions.html',
+    insights: '/dashboard/insights.html',
+    limits: '/dashboard/limits.html',
+    savings: '/dashboard/savings.html',
+    profile: '/dashboard/profile.html',
+  };
+  const loadedTabs = new Set();
+
+  async function loadTab(tab) {
+    if (loadedTabs.has(tab)) return;
+    loadedTabs.add(tab);
+    try {
+      const res = await fetch(TAB_FILES[tab]);
+      const html = await res.text();
+      // Parse the fetched HTML and extract only <body> content + <script> tags
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const pane = document.getElementById(tab + 'Tab');
+      if (!pane) return;
+      // Inject body innerHTML (skip <script> for now)
+      const body = doc.body;
+      // Move all non-script children into pane
+      Array.from(body.children).forEach(child => {
+        if (child.tagName !== 'SCRIPT') {
+          pane.appendChild(document.importNode(child, true));
+        }
+      });
+      // Re-execute scripts in order so functions become available globally
+      const scripts = doc.querySelectorAll('script');
+      for (const s of scripts) {
+        const el = document.createElement('script');
+        if (s.src) { el.src = s.src; } else { el.textContent = s.textContent; }
+        document.body.appendChild(el);
+      }
+    } catch (e) {
+      console.error(`Failed to load tab: ${tab}`, e);
+    }
+  }
+
+  // =====================================================================
+  //  TAB SWITCHING — load file on first visit
+  // =====================================================================
+  async function go(e, tab) {
+    if (e) e.preventDefault();
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
+    document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
+    document.getElementById(tab + 'Tab')?.classList.add('active');
+    await loadTab(tab);
+    // Trigger data fetch after tab content is ready
+    if (tab === 'transactions' && pType === 'user') fetchTxns();
+    if (tab === 'insights' && pType === 'user') fetchInsights();
+    if (tab === 'limits' && pType === 'user') autoLimits();
+    if (tab === 'savings' && pType === 'user') autoSavings();
+  }
+
+  function goProfile() {
+    closePMenu();
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
+    document.getElementById('profileTab').classList.add('active');
+    loadTab('profile');
+  }
+
+  // =====================================================================
+  //  BOOT
+  // =====================================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadTab('overview'); // load overview first — it's the default tab
+    await loadProf();
+    if (pType === 'user') {
+      await fetchAlerts();
+      await fetchOverviewCurrentMonth();
+      startNudges();
+    }
+  });
+</script>
+
+</body>
+</html>

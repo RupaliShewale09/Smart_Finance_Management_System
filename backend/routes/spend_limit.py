@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import pandas as pd
 from sqlalchemy import text
+from datetime import datetime
 
 from backend.utils.spend_limit import generate_spend_limits, save_user_limits, check_spend_alerts
 import backend.database as database
@@ -65,15 +66,18 @@ def generate_limits(user_id: int, db: Session = Depends(get_db)):
 # Endpoint to check alerts
 @router.get("/alerts/{user_id}")
 def get_alerts(user_id: int, db: Session = Depends(get_db)):
+    current_month_str = datetime.utcnow().strftime('%Y-%m')
+
     # Get current spend
     expenses = db.execute(
         text("""
             SELECT merchant_category, SUM(amount) as total 
             FROM expenses 
-            WHERE user_id=:user_id 
+            WHERE user_id = :user_id 
+            AND strftime('%Y-%m', timestamp) = :current_month
             GROUP BY merchant_category
         """),
-        {"user_id": user_id}
+        {"user_id": user_id, "current_month": current_month_str}
     ).fetchall()
 
     current_spend = {row[0]: row[1] for row in expenses}

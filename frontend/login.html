@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartFinance — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    *::-webkit-scrollbar {
+      display: none;
+    }
+
+    :root {
+      --p: #4338CA;
+      --pl: #6366F1;
+      --pg: rgba(67, 56, 202, 0.10);
+      --ac: #06B6D4;
+      --ok: #10B981;
+      --er: #EF4444;
+      --bg: #F0F4FF;
+      --sf: #FFFFFF;
+      --s2: #F5F7FF;
+      --s3: #EBF0FF;
+      --bd: #E2E8F8;
+      --bd2: #C7D2F0;
+      --t1: #0D1535;
+      --t2: #435085;
+      --t3: #8894C2;
+      --r: 18px;
+      --r2: 11px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(67, 56, 202, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(67, 56, 202, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 420px;
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.09) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .brand-ico {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 6px 18px rgba(67, 56, 202, 0.25);
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--t1);
+      letter-spacing: -0.4px;
+    }
+
+    .brand-name span {
+      color: var(--p);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--t3);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+      margin-bottom: 20px;
+      transition: color 0.15s;
+    }
+
+    .back-btn:hover {
+      color: var(--p);
+    }
+
+    .back-btn::before {
+      content: '←';
+    }
+
+    .card {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: 24px;
+      padding: 36px 32px;
+      box-shadow: 0 4px 24px rgba(67, 56, 202, 0.07), 0 1px 3px rgba(67, 56, 202, 0.04);
+    }
+
+    .card-head {
+      margin-bottom: 24px;
+    }
+
+    .card-head h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--t1);
+      letter-spacing: -0.4px;
+      margin-bottom: 6px;
+    }
+
+    .card-head p {
+      font-size: 13px;
+      color: var(--t3);
+      font-weight: 500;
+    }
+
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--pg);
+      border: 1px solid rgba(67, 56, 202, 0.18);
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--p);
+      margin-bottom: 24px;
+    }
+
+    .fg {
+      margin-bottom: 18px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t2);
+      margin-bottom: 7px;
+    }
+
+    .fg input {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--s2);
+      border: 1.5px solid var(--bd);
+      border-radius: var(--r2);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--t1);
+      font-family: inherit;
+      transition: all 0.15s;
+      outline: none;
+    }
+
+    .fg input::placeholder {
+      color: var(--t3);
+    }
+
+    .fg input:focus {
+      border-color: var(--p);
+      background: var(--sf);
+      box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.10);
+    }
+
+    .pw-wrap {
+      position: relative;
+    }
+
+    .pw-wrap input {
+      padding-right: 46px;
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--t3);
+      font-size: 16px;
+      transition: color 0.15s;
+      line-height: 1;
+    }
+
+    .pw-toggle:hover {
+      color: var(--t1);
+    }
+
+    .alert {
+      padding: 11px 14px;
+      border-radius: var(--r2);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert.show {
+      display: flex;
+    }
+
+    .alert.err {
+      background: rgba(239, 68, 68, 0.07);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #b91c1c;
+    }
+
+    .alert.ok {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #047857;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--p), var(--pl));
+      border: none;
+      border-radius: var(--r2);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(67, 56, 202, 0.28);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(67, 56, 202, 0.38);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn.loading {
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--bd);
+      margin: 24px 0;
+    }
+
+    .footer-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--t3);
+      font-weight: 500;
+    }
+
+    .footer-link a {
+      color: var(--p);
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-link a:hover {
+      color: #3730A3;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 1.5rem;
+      }
+
+      .card {
+        padding: 26px 20px;
+      }
+
+      .card-head h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-ico">💰</div>
+      <div class="brand-name">Smart<span>Finance</span></div>
+    </div>
+
+    <button class="back-btn" onclick="window.location.href='/'">Back to Profile Selection</button>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Welcome back</h2>
+        <p>Sign in to continue to your dashboard</p>
+      </div>
+
+      <div class="profile-badge" id="profileBadge">👤 User Login</div>
+
+      <form id="loginForm">
+        <div class="fg">
+          <label>Email / Username</label>
+          <input type="text" id="identifier" placeholder="Enter your identifier" autocomplete="username" required>
+        </div>
+        <div class="fg">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" onclick="togglePW('password', this)">👁️</button>
+          </div>
+        </div>
+
+        <div class="alert err" id="errMsg"></div>
+        <div class="alert ok" id="okMsg"></div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span id="btnTxt">Sign In</span>
+        </button>
+      </form>
+
+      <div class="divider"></div>
+      <div class="footer-link">
+        Don't have an account? <a href="register">Create one</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8000';
+    const pType = localStorage.getItem('profileType') || 'user';
+
+    document.getElementById('profileBadge').textContent = pType === 'user' ? '👤 User Login' : '🏪 Vendor Login';
+
+    function togglePW(id, btn) {
+      const inp = document.getElementById(id);
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      btn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+    }
+
+    function showErr(msg) {
+      const el = document.getElementById('errMsg');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('okMsg').classList.remove('show');
+      setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function showOk(msg) {
+      const el = document.getElementById('okMsg');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('errMsg').classList.remove('show');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const identifier = document.getElementById('identifier').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('submitBtn');
+      const btnTxt = document.getElementById('btnTxt');
+
+      if (!identifier || !password) {
+        showErr('Please fill in all fields');
+        return;
+      }
+
+      btn.classList.add('loading');
+      btnTxt.textContent = 'Signing in…';
+
+      const fd = new FormData();
+      fd.append('identifier', identifier);
+      fd.append('password', password);
+
+      const endpoint = pType === 'user' ? `${API}/auth/user/login` : `${API}/auth/vendor/login`;
+      try {
+        const r = await fetch(endpoint, {
+          method: 'POST',
+          body: fd
+        });
+        const d = await r.json();
+        if (r.ok && (d.user_id || d.vendor_id)) {
+          showOk('Login successful! Redirecting…');
+          if (pType === 'user') {
+            localStorage.setItem('userId', d.user_id);
+            localStorage.setItem('vendorId', '');
+          } else {
+            localStorage.setItem('vendorId', d.vendor_id);
+            localStorage.setItem('userId', '');
+          }
+          localStorage.setItem('profileType', pType);
+          setTimeout(() => {
+            window.location.href = 'dashboard';
+          }, 900);
+        } else {
+          btn.classList.remove('loading');
+          btnTxt.textContent = 'Sign In';
+          showErr(d.detail || 'Invalid credentials. Please try again.');
+        }
+      } catch (err) {
+        btn.classList.remove('loading');
+        btnTxt.textContent = 'Sign In';
+        showErr('Network error. Please check your connection.');
+      }
+    });
+  </script>
+</body>
+</html>
