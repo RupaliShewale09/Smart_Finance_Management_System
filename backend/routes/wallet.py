@@ -105,6 +105,7 @@ def get_transaction_history(user_id: int, db: Session = Depends(get_db)):
             "amount": float(tx.amount),
             "type": tx_type,
             "party_name": counterparty,
+            "party_wallet_id": tx.receiver_wallet_id if tx.sender_id == user_id else tx.sender_wallet_id,
             "category": category, # Original Logic category
             "expense_category": expense_category, # From Expenses Table
             "urgency": db_urgency, # From Expenses Table
