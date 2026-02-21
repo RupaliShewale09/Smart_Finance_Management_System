@@ -20,14 +20,16 @@ def get_db():
 
 @router.post("/generate/{user_id}")
 def generate_limits(user_id: int, db: Session = Depends(get_db)):
+    current_month = datetime.utcnow().strftime('%Y-%m')
     # Fetch user transactions
     expenses = db.execute(
         text("""
             SELECT merchant_category, amount 
             FROM expenses 
             WHERE user_id=:user_id
+             AND strftime('%Y-%m', timestamp) = :current_month
         """),
-        {"user_id": user_id}
+        {"user_id": user_id, "current_month": current_month}
     ).fetchall()
     
     if not expenses:
@@ -63,6 +65,31 @@ def generate_limits(user_id: int, db: Session = Depends(get_db)):
 
 
 
+# Endpoint to get current month spending grouped by merchant_category.
+# Keys are normalized (title-case, stripped) to match generate_spend_limits output exactly.
+@router.get("/current-spending/{user_id}")
+def get_current_spending(user_id: int, db: Session = Depends(get_db)):
+    current_month_str = datetime.utcnow().strftime('%Y-%m')
+
+    expenses = db.execute(
+        text("""
+            SELECT merchant_category, SUM(amount) as total
+            FROM expenses
+            WHERE user_id = :user_id
+            AND strftime('%Y-%m', timestamp) = :current_month
+            GROUP BY merchant_category
+        """),
+        {"user_id": user_id, "current_month": current_month_str}
+    ).fetchall()
+
+    # Normalize keys: strip + title-case — same as generate_spend_limits
+    spending = {
+        str(row[0]).strip().title(): float(row[1])
+        for row in expenses
+    }
+    return {"spending": spending}
+
+
 # Endpoint to check alerts
 @router.get("/alerts/{user_id}")
 def get_alerts(user_id: int, db: Session = Depends(get_db)):
@@ -80,7 +107,7 @@ def get_alerts(user_id: int, db: Session = Depends(get_db)):
         {"user_id": user_id, "current_month": current_month_str}
     ).fetchall()
 
-    current_spend = {row[0]: row[1] for row in expenses}
+    current_spend = {str(row[0]).strip().title(): row[1] for row in expenses}
     
     alerts = check_spend_alerts(db, user_id, current_spend)
     return {"alerts": alerts}

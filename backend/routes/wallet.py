@@ -6,7 +6,7 @@ import backend.schemas.auth as schemas
 import backend.database as database
 
 
-router = APIRouter(tags=["Transacacrion and wallet"])
+router = APIRouter(tags=["Transactions and wallet"])
 
 def get_db():
     db = database.SessionLocal()

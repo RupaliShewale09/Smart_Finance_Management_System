@@ -52,10 +52,7 @@
 
     try {
       const d = await (
-        await fetch(`${API}/insights/spending-form`, {
-          method: 'POST',
-          body: fd
-        })
+        await fetch(`${API}/insights/spending-form`, { method: 'POST', body: fd })
       ).json();
 
       const fmt = v => `₹${parseFloat(v || 0).toFixed(0)}`;
@@ -65,12 +62,14 @@
       const income = (prof?.income) || 1;
 
       const g = id => document.getElementById(id);
-
       if (g('totSpent')) g('totSpent').textContent = ts;
       if (g('hiUrg'))    g('hiUrg').textContent    = hu;
       if (g('spBadge'))  g('spBadge').textContent  = `${((d.total_spent / income) * 100).toFixed(0)}% income`;
       if (g('urgBadge')) g('urgBadge').textContent = `${hu} high-urgency`;
       if (g('aiTxt'))    g('aiTxt').innerHTML = `This month: spent <strong>${ts}</strong> across <strong>${cats}</strong> categories. ${hu > 2 ? '⚠️ High-urgency spending detected.' : '✅ Spending on track.'}`;
+
+      // Store for use by renderLimits in limits tab
+      window.currentMonthSpending = d.category_wise_spending || {};
 
     } catch (e) {
       console.error('Overview error:', e);
@@ -81,20 +80,8 @@
     if (pType !== 'user') return;
 
     try {
-      const d = await (
-        await fetch(`${API}/spend/alerts/${userId}`)
-      ).json();
-
+      const d = await (await fetch(`${API}/spend/alerts/${userId}`)).json();
       const alerts = d.alerts || [];
-      const spendingFromAlerts = {};
-
-      alerts.forEach(a => {
-        if (a.category && a.message.includes(':')) {
-          spendingFromAlerts[a.category.toLowerCase().trim()] = parseFloat(
-            a.message.split(': ')[1].split('/')[0]
-          );
-        }
-      });
 
       const html = alerts.length
         ? alerts.map(a => `
@@ -113,17 +100,11 @@
         if (el) el.innerHTML = html;
       });
 
-      const ac  = document.getElementById('alertCnt');
-      if (ac)  ac.textContent = alerts.length > 0 ? `${alerts.length} active` : '0';
+      const ac = document.getElementById('alertCnt');
+      if (ac) ac.textContent = alerts.length > 0 ? `${alerts.length} active` : '0';
 
       const lac = document.getElementById('limAlertCnt');
       if (lac) lac.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
-
-      if (window.currentLimitsData && typeof renderLimits === 'function') {
-        renderLimits(window.currentLimitsData, spendingFromAlerts);
-      }
-
-      window.alertSpending = spendingFromAlerts;
 
     } catch (e) {
       console.error('Alert error:', e);

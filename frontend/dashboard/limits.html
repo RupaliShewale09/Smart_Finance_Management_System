@@ -418,27 +418,59 @@
   // =====================================================================
   async function autoLimits() {
     try {
-      const fd = new FormData();
-      fd.append('user_id', userId);
-      fd.append('start_date', fom());
-      fd.append('end_date', today());
-
-      const [limRes, insRes] = await Promise.all([
+      // Fetch limits, current spending, and alerts all in parallel.
+      // /spend/current-spending uses merchant_category — same grouping as generate_spend_limits.
+      const [limRes, spendRes, alertsRes] = await Promise.all([
         fetch(`${API}/spend/generate/${userId}`, { method: 'POST' }),
-        fetch(`${API}/insights/spending-form`, { method: 'POST', body: fd })
+        fetch(`${API}/spend/current-spending/${userId}`),
+        fetch(`${API}/spend/alerts/${userId}`)
       ]);
-      const limData = await limRes.json();
-      const insData = await insRes.json();
 
-      if (limData.limits) {
-        window.currentLimitsData = limData.limits;
-        renderLimits(limData.limits, {
-          ...(insData.category_wise_spending || {}),
-          ...(window.alertSpending || {})
-        });
-        const lt = document.getElementById('limTag');
-        if (lt) lt.textContent = `${limData.limits.length} categories`;
+      const limData    = await limRes.json();
+      const spendData  = await spendRes.json();
+      const alertsData = await alertsRes.json();
+
+      // ── Limit bars ──────────────────────────────────────────────────
+      if (!limData.limits) {
+        const el = document.getElementById('limDisp');
+        if (el) el.innerHTML = `<div class="empty"><div class="ei">⚠️</div>${limData.detail || 'Could not generate limits. Please update your income and savings goal first.'}</div>`;
+        return;
       }
+
+      window.currentLimitsData  = limData.limits;
+      window.currentLimSpending = spendData.spending || {};
+
+      const lt = document.getElementById('limTag');
+      if (lt) lt.textContent = `${limData.limits.length} categories`;
+
+      renderLimits(limData.limits, window.currentLimSpending);
+
+      // ── Alerts panel ────────────────────────────────────────────────
+      const alerts = alertsData.alerts || [];
+      const alertHtml = alerts.length
+        ? alerts.map(a => `
+            <div class="ait ${a.type === 'danger' ? 'd' : 'w'}">
+              <span style="font-size:16px">${a.type === 'danger' ? '🚨' : '⚠️'}</span>
+              <div>
+                <div class="attl">${a.category || 'Alert'}</div>
+                <div class="amsg">${a.message}</div>
+              </div>
+            </div>`).join('')
+        : '<div class="empty"><div class="ei">✅</div>No alerts this month</div>';
+
+      const limAlerts = document.getElementById('limAlerts');
+      if (limAlerts) limAlerts.innerHTML = alertHtml;
+
+      const lac = document.getElementById('limAlertCnt');
+      if (lac) lac.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
+
+      // Also sync the overview alertList if it exists
+      const alertList = document.getElementById('alertList');
+      if (alertList && alerts.length) alertList.innerHTML = alertHtml;
+
+      const ac = document.getElementById('alertCnt');
+      if (ac && alerts.length) ac.textContent = `${alerts.length} active`;
+
     } catch (e) {
       console.error('Limits error:', e);
     }
@@ -448,7 +480,6 @@
     const el = document.getElementById('limDisp');
     if (el) el.innerHTML = '<div class="shimmer" style="height:100px;border-radius:var(--r2)"></div>';
     await autoLimits();
-    if (typeof fetchAlerts === 'function') await fetchAlerts();
   }
 
   function renderLimits(limits, catSpending) {
@@ -456,32 +487,39 @@
     if (!el) return;
     let safe = 0, warn = 0, danger = 0;
 
+    // Normalize spending keys: lowercase + trim
     const norm = {};
     Object.keys(catSpending).forEach(k => {
-      norm[k.toLowerCase().trim()] = catSpending[k];
+      norm[k.toLowerCase().trim()] = parseFloat(catSpending[k]) || 0;
     });
 
-    const html = limits.map(l => {
-      const k = l.category.toLowerCase().trim();
-      const spent = norm[k] || 0;
-      const lmt = l.limit;
-      const pct = lmt > 0 ? (spent / lmt) * 100 : 0;
-      const disp = Math.min(100, pct);
-      let cls, color;
-      if (pct >= 100) {
-        cls = 'danger';
-        color = '#EF4444';
-        danger++;
-      } else if (pct > 70) {
-        cls = 'warn';
-        color = '#F59E0B';
-        warn++;
-      } else {
-        cls = 'safe';
-        color = '#10B981';
-        safe++;
+    // Fuzzy lookup: exact → then contains match in either direction
+    function getSpent(category) {
+      const k = category.toLowerCase().trim();
+      if (norm[k] !== undefined) return norm[k];
+      // Try partial match: spending key contains limit key, or vice versa
+      for (const [sk, sv] of Object.entries(norm)) {
+        if (sk.includes(k) || k.includes(sk)) return sv;
       }
-      const rem = lmt - spent;
+      return 0;
+    }
+
+    // Total Monthly Spend = sum of all category spending
+    const totalSpent = Object.values(norm).reduce((a, b) => a + b, 0);
+
+    const html = limits.map(l => {
+      const isTotal = l.category.toLowerCase().trim() === 'total monthly spend';
+      const spent   = isTotal ? totalSpent : getSpent(l.category);
+      const lmt     = parseFloat(l.limit);
+      const pct     = lmt > 0 ? (spent / lmt) * 100 : 0;
+      const disp    = Math.min(100, pct);
+      const rem     = lmt - spent;
+
+      let cls, color;
+      if (pct >= 100)    { cls = 'danger'; color = '#EF4444'; danger++; }
+      else if (pct > 70) { cls = 'warn';   color = '#F59E0B'; warn++;   }
+      else               { cls = 'safe';   color = '#10B981'; safe++;   }
+
       return `
         <div class="lim">
           <div class="lhdr">
@@ -490,7 +528,7 @@
           </div>
           <div class="lbar"><div class="lfill" style="width:${disp}%;background:${color}"></div></div>
           <div class="lnums">
-            <span>₹${parseFloat(spent).toFixed(0)} spent of ₹${parseFloat(lmt).toFixed(0)}</span>
+            <span>₹${spent.toFixed(0)} spent of ₹${lmt.toFixed(0)}</span>
             <span style="color:${rem >= 0 ? 'var(--ok)' : 'var(--er)'}">
               ${rem >= 0 ? `₹${rem.toFixed(0)} left` : `₹${Math.abs(rem).toFixed(0)} over`}
             </span>
@@ -498,7 +536,7 @@
         </div>`;
     }).join('');
 
-    el.innerHTML = html;
+    el.innerHTML = html || '<div class="empty">No limit data available</div>';
     ['limSafe', 'limWarn', 'limDang'].forEach((id, i) => {
       const e = document.getElementById(id);
       if (e) e.textContent = [safe, warn, danger][i];

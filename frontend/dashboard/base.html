@@ -2076,6 +2076,18 @@
     income: { cls: 'cat-green', emoji: '🟢', hex: '#10B981', label: 'Received' } // Add this!
   };
   const CAT_COLOR_TO_URGENCY = { red: 'critical', orange: 'necessary', yellow: 'discretionary', green: 'low' };
+
+  // Maps category keywords → urgency level (used as fallback in getCatUrgencyColor)
+  const CATEGORY_URGENCY_MAP = {
+    medical: 'critical', health: 'critical', hospital: 'critical', medicine: 'critical', emergency: 'critical',
+    rent: 'necessary', grocery: 'necessary', groceries: 'necessary', food: 'necessary', fuel: 'necessary',
+    transport: 'necessary', electricity: 'necessary', bill: 'necessary', utility: 'necessary', utilities: 'necessary',
+    insurance: 'necessary', education: 'necessary', school: 'necessary', college: 'necessary',
+    entertainment: 'discretionary', shopping: 'discretionary', restaurant: 'discretionary', dining: 'discretionary',
+    travel: 'discretionary', gaming: 'discretionary', subscription: 'discretionary', clothing: 'discretionary',
+    personal: 'discretionary', beauty: 'discretionary', salon: 'discretionary', gym: 'discretionary',
+    transfer: 'discretionary', other: 'discretionary'
+  };
   
   function getCatUrgencyColor(input) {
     // 1. If input is a full transaction object (from Transactions tab)
@@ -2104,8 +2116,6 @@
   }
 
 
-  function getCatChartColor(n) { return getCatUrgencyColor(n).hex; }
-
   function today() { return new Date().toISOString().split('T')[0]; }
 
   function fom() {
@@ -2113,8 +2123,6 @@
     d.setDate(1);
     return d.toISOString().split('T')[0];
   }
-
-  function monthLabel() { return new Date().toLocaleString('default', { month: 'long', year: 'numeric' }); }
 
   function dateRange(p) {
     const sd = new Date(), ed = new Date();
@@ -2143,24 +2151,7 @@
     } catch (e) { return ts; }
   }
 
-  // =====================================================================
-  //  TABS
-  // =====================================================================
-  function go(e, tab) {
-    if (e) e.preventDefault();
-    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
-    document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
-    document.getElementById(tab + 'Tab')?.classList.add('active');
-    if (tab === 'transactions' && pType === 'user') fetchTxns();
-  }
-
-  function goProfile() {
-    closePMenu();
-    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
-    document.getElementById('profileTab').classList.add('active');
-  }
+  // go() and goProfile() are defined below near the TAB LOADER section
 
   // =====================================================================
   //  PROFILE
@@ -2191,7 +2182,7 @@
       const qurl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(d.wallet.wallet_id)}`;
       ['qrImg', 'qrPopImg'].forEach(id => { const e = document.getElementById(id); if (e) e.src = qurl; });
       ['qrId', 'qrPopId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = d.wallet.wallet_id; });
-      renderProfDets(d);
+      if (typeof renderProfDets === 'function') renderProfDets(d);
     } catch (e) { console.error('Profile error:', e); }
   }
 
@@ -2603,7 +2594,7 @@
   }
 
   // =====================================================================
-  //  TAB SWITCHING — load file on first visit
+  //  TAB SWITCHING — load tab HTML on first visit, then trigger data fetch
   // =====================================================================
   async function go(e, tab) {
     if (e) e.preventDefault();
@@ -2612,11 +2603,11 @@
     document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
     document.getElementById(tab + 'Tab')?.classList.add('active');
     await loadTab(tab);
-    // Trigger data fetch after tab content is ready
     if (tab === 'transactions' && pType === 'user') fetchTxns();
-    if (tab === 'insights' && pType === 'user') fetchInsights();
-    if (tab === 'limits' && pType === 'user') autoLimits();
-    if (tab === 'savings' && pType === 'user') autoSavings();
+    if (tab === 'insights'     && pType === 'user') fetchInsights();
+    if (tab === 'limits'       && pType === 'user') autoLimits();
+    if (tab === 'savings'      && pType === 'user') autoSavings();
+    if (tab === 'profile') { if (typeof renderProfDets === 'function' && prof) renderProfDets(prof); }
   }
 
   function goProfile() {
@@ -2624,7 +2615,7 @@
     document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
     document.getElementById('profileTab').classList.add('active');
-    loadTab('profile');
+    loadTab('profile').then(() => { if (typeof renderProfDets === 'function' && prof) renderProfDets(prof); });
   }
 
   // =====================================================================
@@ -2634,8 +2625,8 @@
     await loadTab('overview'); // load overview first — it's the default tab
     await loadProf();
     if (pType === 'user') {
-      await fetchAlerts();
       await fetchOverviewCurrentMonth();
+      await fetchAlerts();
       startNudges();
     }
   });
