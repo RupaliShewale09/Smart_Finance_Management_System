@@ -1,44 +1,75 @@
 <!-- overview.html — content fragment, loaded into #overviewTab by base.html -->
 
-<div class="aibar" id="aiBar">
-  <span class="ai-ico">✦</span>
-  <p class="ai-txt" id="aiTxt">AI is analyzing… <strong>loading your financial insights</strong></p>
+<!-- USER OVERVIEW -->
+<div id="userOverview">
+  <div class="aibar" id="aiBar">
+    <span class="ai-ico">✦</span>
+    <p class="ai-txt" id="aiTxt">AI is analyzing… <strong>loading your financial insights</strong></p>
+  </div>
+
+  <div class="ov-stats">
+    <div class="bal-card">
+      <div class="bl">Total Balance</div>
+      <div class="bamt" id="walBal">₹0.00</div>
+      <div class="bid"  id="walId">Wallet ID: —</div>
+      <div class="bbadges">
+        <div class="bbadge"><div class="bdot"></div>AI-Monitored</div>
+        <div class="bbadge" id="riskBadge">⚖️ Medium Risk</div>
+      </div>
+      <div class="bbtns">
+        <button class="bbtn" onclick="openSP()">📱 Scan &amp; Pay</button>
+        <button class="bbtn" onclick="showAddMoney()">+ Add Money</button>
+      </div>
+    </div>
+    <div class="sc">
+      <div class="sc-tp"><div class="sc-ico ic-g">💰</div><span class="sbadge sb-up">income</span></div>
+      <div class="sval" id="ovInc">₹0</div>
+      <div class="slbl">Monthly Income</div>
+    </div>
+    <div class="sc">
+      <div class="sc-tp"><div class="sc-ico ic-r">💸</div><span class="sbadge sb-dn" id="spBadge">—</span></div>
+      <div class="sval" id="totSpent">₹0</div>
+      <div class="slbl">Spent This Month</div>
+    </div>
+    <div class="sc">
+      <div class="sc-tp"><div class="sc-ico ic-y">🔥</div><span class="sbadge sb-nu" id="urgBadge">—</span></div>
+      <div class="sval" id="hiUrg">0</div>
+      <div class="slbl">High Urgency Txns</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chdr"><span class="ctitle">Active Alerts</span><span class="ctag" id="alertCnt">0</span></div>
+    <div id="alertList"><div class="empty"><div class="ei">✅</div>No alerts right now</div></div>
+  </div>
 </div>
 
-<div class="ov-stats">
-  <div class="bal-card">
-    <div class="bl">Total Balance</div>
-    <div class="bamt" id="walBal">₹0.00</div>
-    <div class="bid"  id="walId">Wallet ID: —</div>
-    <div class="bbadges">
-      <div class="bbadge"><div class="bdot"></div>AI-Monitored</div>
-      <div class="bbadge" id="riskBadge">⚖️ Medium Risk</div>
-    </div>
-    <div class="bbtns">
-      <button class="bbtn" onclick="openSP()">📱 Scan &amp; Pay</button>
-      <button class="bbtn" onclick="showAddMoney()">+ Add Money</button>
-    </div>
-  </div>
-  <div class="sc">
-    <div class="sc-tp"><div class="sc-ico ic-g">💰</div><span class="sbadge sb-up">income</span></div>
-    <div class="sval" id="ovInc">₹0</div>
-    <div class="slbl">Monthly Income</div>
-  </div>
-  <div class="sc">
-    <div class="sc-tp"><div class="sc-ico ic-r">💸</div><span class="sbadge sb-dn" id="spBadge">—</span></div>
-    <div class="sval" id="totSpent">₹0</div>
-    <div class="slbl">Spent This Month</div>
-  </div>
-  <div class="sc">
-    <div class="sc-tp"><div class="sc-ico ic-y">🔥</div><span class="sbadge sb-nu" id="urgBadge">—</span></div>
-    <div class="sval" id="hiUrg">0</div>
-    <div class="slbl">High Urgency Txns</div>
-  </div>
-</div>
+<!-- VENDOR OVERVIEW — balance only -->
+<div id="vendorOverview" style="display:none">
 
-<div class="card">
-  <div class="chdr"><span class="ctitle">Active Alerts</span><span class="ctag" id="alertCnt">0</span></div>
-  <div id="alertList"><div class="empty"><div class="ei">✅</div>No alerts right now</div></div>
+  <!-- Business banner -->
+  <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(67,56,202,0.06));border:1px solid rgba(6,182,212,0.2);border-radius:var(--r);margin-bottom:20px">
+    <div style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--ac),var(--p));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(6,182,212,0.3)">🏪</div>
+    <div>
+      <div style="font-size:15px;font-weight:800;color:var(--t1)" id="vendorBizName">Business</div>
+      <div style="font-size:12px;color:var(--ac);font-weight:700" id="vendorCat">—</div>
+    </div>
+    <div style="margin-left:auto;padding:5px 14px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.25);border-radius:30px;font-size:11px;font-weight:800;color:var(--ac)">🏪 Vendor Account</div>
+  </div>
+
+  <!-- Balance card only -->
+  <div class="ov-stats" style="grid-template-columns:1fr">
+    <div class="bal-card">
+      <div class="bl">Wallet Balance</div>
+      <div class="bamt" id="vWalBal">₹0.00</div>
+      <div class="bid" id="vWalId">Wallet ID: —</div>
+      <div class="bbadges">
+        <div class="bbadge"><div class="bdot" style="background:var(--ac)"></div>Vendor Wallet</div>
+        <div class="bbadge" id="vendorCatBadge">🏪 Business</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -73,6 +104,34 @@
 
     } catch (e) {
       console.error('Overview error:', e);
+    }
+  }
+
+  async function fetchVendorOverview() {
+    if (pType !== 'vendor') return;
+
+    // Show vendor overview, hide user overview
+    const userOv = document.getElementById('userOverview');
+    const vendorOv = document.getElementById('vendorOverview');
+    if (userOv) userOv.style.display = 'none';
+    if (vendorOv) vendorOv.style.display = 'block';
+
+    // Populate from prof
+    if (prof) {
+      const bname = document.getElementById('vendorBizName');
+      const vcat = document.getElementById('vendorCat');
+      const vcatBadge = document.getElementById('vendorCatBadge');
+      if (bname) bname.textContent = prof.business_name || 'Business';
+      if (vcat) vcat.textContent = prof.category || '—';
+      if (vcatBadge) vcatBadge.textContent = `🏪 ${prof.category || 'Vendor'}`;
+
+      // Set balance and wallet ID using vendor-specific element IDs
+      const bal = prof.wallet?.balance?.toFixed(2) ?? '0.00';
+      const wid = prof.wallet?.wallet_id ?? '—';
+      const vb = document.getElementById('vWalBal');
+      const vi = document.getElementById('vWalId');
+      if (vb) vb.textContent = `₹${bal}`;
+      if (vi) vi.textContent = `Wallet ID: ${wid}`;
     }
   }
 

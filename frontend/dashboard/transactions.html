@@ -2,8 +2,8 @@
 
 <div class="phdrr">
   <div class="phdr">
-    <h1>Transactions</h1>
-    <p>All payment activity</p>
+    <h1 id="txnTitle">Transactions</h1>
+    <p id="txnSubtitle">All payment activity</p>
   </div>
   <button class="btn bs bsm" onclick="fetchTxns()">🔄 Refresh</button>
 </div>
@@ -21,6 +21,11 @@
   async function fetchTxns() {
     const el = document.getElementById('txnList');
     if (!el) return;
+    // Update header for vendor
+    if (pType === 'vendor') {
+      const t = document.getElementById('txnTitle'); if(t) t.textContent = 'Received Payments';
+      const s = document.getElementById('txnSubtitle'); if(s) s.textContent = 'Payments received from customers';
+    }
 
     // Show shimmer loading state
     el.innerHTML = `<div style="overflow-x:auto">
@@ -51,15 +56,17 @@
 
     try {
       const d = await (
-        await fetch(`${API}/transactions/history/${userId}`)
+        await fetch(`${API}/transactions/history/${pType === 'vendor' ? `vendor/${vendorId}` : userId}`)
       ).json();
       console.log("Fetched")
 
-      const txns = Array.isArray(d) ? d : (d.transactions || d.history || []);
+      const allTxns = Array.isArray(d) ? d : (d.transactions || d.history || []);
+      // Backend already filters to received-only for vendors
+      const txns = allTxns;
 
       el.innerHTML = txns.length
         ? buildTxnTable(txns)
-        : '<div class="empty"><div class="ei">💸</div>No transactions yet</div>';
+        : `<div class="empty"><div class="ei">💸</div>${pType === 'vendor' ? 'No received payments yet' : 'No transactions yet'}</div>`;
 
     } catch (e) {
       el.innerHTML = '<div class="empty"><div class="ei">⚠️</div>Could not load transactions</div>';
@@ -67,6 +74,11 @@
   }
 
   function buildTxnTable(txns) {
+    const isVendor = pType === 'vendor';
+    const headers = isVendor
+      ? ['Party', 'Date & Time', 'Status', 'Amount']
+      : ['Party', 'Date & Time', 'Category', 'Type', 'Status', 'Amount'];
+
     const rows = txns.map(t => {
       const isSent = (t.type || '').toLowerCase() === 'sent' || t.is_expense === true;
       const amt = parseFloat(t.amount || 0);
@@ -76,124 +88,119 @@
       const dirColor = isSent ? '#EF4444' : '#10B981';
       const { date, time } = fmtTxnDate(t.timestamp);
 
+      const partyCell = `
+        <td style="padding:13px 14px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:34px;height:34px;border-radius:10px;flex-shrink:0;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:13px;font-weight:800;
+                        background:${isSent ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)'};
+                        color:${dirColor};border:1.5px solid ${dirColor}25">
+              ${isSent ? '↑' : '↓'}
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--t1);text-transform:capitalize">
+              ${t.party_name || '—'}
+            </span>
+            <span style="font-size:11px;font-weight:600;color:var(--t3);
+                       font-family:'JetBrains Mono',monospace;letter-spacing:0.3px;white-space:nowrap">
+              ${t.party_wallet_id || '—'}
+            </span>
+          </div>
+        </td>`;
+
+      const dateCell = `
+        <td style="padding:13px 14px;white-space:nowrap">
+          <div style="font-size:13px;font-weight:600">${date}</div>
+          <div style="font-size:11px;color:var(--t3)">${time}</div>
+        </td>`;
+
+      const categoryCell = `
+        <td style="padding:13px 14px">
+          <span style="display:inline-flex;align-items:center;gap:5px;
+                       font-size:11px;font-weight:700;padding:4px 10px;
+                       border-radius:30px;background:${catCol}18;color:${catCol};
+                       border:1px solid ${catCol}30">
+            <span style="width:6px;height:6px;border-radius:50%;background:${catCol};flex-shrink:0"></span>
+            ${t.category || '—'}
+          </span>
+        </td>`;
+
+      const typeCell = `
+        <td style="padding:13px 14px">
+          <span style="display:inline-flex;align-items:center;gap:5px;
+                       font-size:11px;font-weight:800;padding:4px 10px;border-radius:30px;
+                       background:${isSent ? 'rgba(239,68,68,0.07)' : 'rgba(16,185,129,0.07)'};
+                       color:${dirColor}">
+            ${isSent ? '↑ Sent' : '↓ Received'}
+          </span>
+        </td>`;
+
+      const statusCell = `
+        <td style="padding:13px 14px">
+          ${statusOk
+            ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+                            padding:4px 10px;border-radius:30px;background:rgba(16,185,129,0.1);color:#059669">
+                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                 Success
+               </span>`
+            : `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+                            padding:4px 10px;border-radius:30px;background:rgba(239,68,68,0.08);color:#DC2626">
+                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                 Failed
+               </span>`}
+        </td>`;
+
+      const amountCell = `
+        <td style="padding:13px 14px;text-align:right">
+          <div style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;
+                      color:${dirColor};white-space:nowrap">
+            ${isSent ? '−' : '+'}₹${amt.toLocaleString('en-IN')}
+          </div>
+        </td>`;
+
       return `
         <tr style="border-bottom:1px solid var(--bd);transition:0.12s"
             onmouseover="this.style.background='var(--s2)'"
             onmouseout="this.style.background='transparent'">
-          <td style="padding:13px 14px">
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:34px;height:34px;border-radius:10px;flex-shrink:0;
-                          display:flex;align-items:center;justify-content:center;
-                          font-size:13px;font-weight:800;
-                          background:${isSent ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)'};
-                          color:${dirColor};
-                          border:1.5px solid ${dirColor}25">
-                ${isSent ? '↑' : '↓'}
-              </div>
-              <span style="font-size:13px;font-weight:700;color:var(--t1);text-transform:capitalize">
-                ${t.party_name || '—'}
-              </span>
-              <span style="font-size:11px;font-weight:600;color:var(--t3);
-                         font-family:'JetBrains Mono',monospace;
-                         letter-spacing:0.3px;white-space:nowrap">
-              ${t.party_wallet_id || '—'}
-            </span>
-            </div>
-          </td>
-          <td style="padding:13px 14px;white-space:nowrap">
-            <div style="font-size:13px;font-weight:600">${date}</div>
-            <div style="font-size:11px;color:var(--t3)">${time}</div>
-          </td>
-          <td style="padding:13px 14px">
-            <span style="display:inline-flex;align-items:center;gap:5px;
-                         font-size:11px;font-weight:700;padding:4px 10px;
-                         border-radius:30px;background:${catCol}18;color:${catCol};
-                         border:1px solid ${catCol}30">
-              <span style="width:6px;height:6px;border-radius:50%;background:${catCol};flex-shrink:0"></span>
-              ${t.category || '—'}
-            </span>
-          </td>
-          <td style="padding:13px 14px">
-            <span style="display:inline-flex;align-items:center;gap:5px;
-                         font-size:11px;font-weight:800;padding:4px 10px;
-                         border-radius:30px;
-                         background:${isSent ? 'rgba(239,68,68,0.07)' : 'rgba(16,185,129,0.07)'};
-                         color:${dirColor}">
-              ${isSent ? '↑ Sent' : '↓ Received'}
-            </span>
-          </td>
-          <td style="padding:13px 14px">
-            ${statusOk
-              ? `<span style="display:inline-flex;align-items:center;gap:4px;
-                              font-size:11px;font-weight:700;padding:4px 10px;
-                              border-radius:30px;background:rgba(16,185,129,0.1);
-                              color:#059669">
-                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="3">
-                     <polyline points="20 6 9 17 4 12"/>
-                   </svg>
-                   Success
-                 </span>`
-              : `<span style="display:inline-flex;align-items:center;gap:4px;
-                              font-size:11px;font-weight:700;padding:4px 10px;
-                              border-radius:30px;background:rgba(239,68,68,0.08);
-                              color:#DC2626">
-                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="3">
-                     <line x1="18" y1="6" x2="6" y2="18"/>
-                     <line x1="6" y1="6" x2="18" y2="18"/>
-                   </svg>
-                   Failed
-                 </span>`
-            }
-          </td>
-          <td style="padding:13px 14px;text-align:right">
-            <div style="font-size:15px;font-weight:800;
-                        font-family:'JetBrains Mono',monospace;
-                        color:${dirColor};white-space:nowrap">
-              ${isSent ? '−' : '+'}₹${amt.toLocaleString('en-IN')}
-            </div>
-          </td>
-        </tr>
-      `;
+          ${partyCell}
+          ${dateCell}
+          ${isVendor ? '' : categoryCell}
+          ${isVendor ? '' : typeCell}
+          ${statusCell}
+          ${amountCell}
+        </tr>`;
     }).join('');
 
     const sent = txns.filter(t =>
       (t.type || '').toLowerCase() === 'sent' || t.is_expense === true
     ).length;
 
+    const footer = isVendor
+      ? `<span style="font-size:12px;color:var(--t3);font-weight:600">${txns.length} payments received</span>`
+      : `<span style="font-size:12px;color:var(--t3);font-weight:600">${txns.length} transactions total</span>
+         <span style="font-size:12px;color:var(--t3)">
+           <span style="color:#10B981;font-weight:700">${txns.length - sent} received</span>
+           · <span style="color:#EF4444;font-weight:700">${sent} sent</span>
+         </span>`;
+
     return `
       <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;min-width:600px">
+        <table style="width:100%;border-collapse:collapse;min-width:${isVendor ? '400px' : '600px'}">
           <thead>
             <tr style="border-bottom:2px solid var(--bd);background:var(--s2)">
-              ${['Party', 'Date & Time', 'Category', 'Type', 'Status', 'Amount']
-                .map((h, i) => `
-                  <th style="padding:11px 14px;text-align:${i === 5 ? 'right' : 'left'};
-                             font-size:11px;font-weight:700;color:var(--t3);
-                             text-transform:uppercase;letter-spacing:0.5px;
-                             white-space:nowrap">
-                    ${h}
-                  </th>
-                `).join('')}
+              ${headers.map((h, i) => `
+                <th style="padding:11px 14px;text-align:${i === headers.length - 1 ? 'right' : 'left'};
+                           font-size:11px;font-weight:700;color:var(--t3);
+                           text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap">
+                  ${h}
+                </th>`).join('')}
             </tr>
           </thead>
-          <tbody>
-            ${rows}
-          </tbody>
+          <tbody>${rows}</tbody>
         </table>
-        <div style="padding:12px 14px;border-top:1px solid var(--bd);
-                    display:flex;justify-content:space-between">
-          <span style="font-size:12px;color:var(--t3);font-weight:600">
-            ${txns.length} transactions total
-          </span>
-          <span style="font-size:12px;color:var(--t3)">
-            <span style="color:#10B981;font-weight:700">${txns.length - sent} received</span>
-            ·
-            <span style="color:#EF4444;font-weight:700">${sent} sent</span>
-          </span>
+        <div style="padding:12px 14px;border-top:1px solid var(--bd);display:flex;justify-content:space-between">
+          ${footer}
         </div>
-      </div>
-    `;
+      </div>`;
   }
 </script>

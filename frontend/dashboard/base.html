@@ -1883,12 +1883,17 @@
     @media (max-width: 640px) {
       .two-col { grid-template-columns: 1fr; }
     }
+
+    /* Vendor mode — hide user-only elements */
+    body.vendor-mode .user-only {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
 
-<!-- NUDGE -->
-<div id="nudgePopup" class="nudge hidden">
+<!-- NUDGE — user only -->
+<div id="nudgePopup" class="nudge hidden user-only">
   <div class="nudge-in">
     <button class="nudge-x" onclick="closeNudge()">×</button>
     <div class="nudge-tag">✦ AI Insight</div>
@@ -1902,26 +1907,28 @@
     <div class="bico">💰</div>
     <div class="bname">Smart<b>Finance</b></div>
   </a>
-  <nav class="ntabs">
+  <nav class="ntabs" id="mainNav">
     <a class="ntab active" data-tab="overview" href="#" onclick="go(event,'overview')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Overview
     </a>
     <a class="ntab" data-tab="transactions" href="#" onclick="go(event,'transactions')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Transactions
     </a>
-    <a class="ntab" data-tab="insights" href="#" onclick="go(event,'insights')">
+    <!-- User-only tabs — hidden for vendors -->
+    <a class="ntab user-only" data-tab="insights" href="#" onclick="go(event,'insights')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Insights
     </a>
-    <a class="ntab" data-tab="limits" href="#" onclick="go(event,'limits')">
+    <a class="ntab user-only" data-tab="limits" href="#" onclick="go(event,'limits')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Limits
     </a>
-    <a class="ntab" data-tab="savings" href="#" onclick="go(event,'savings')">
+    <a class="ntab user-only" data-tab="savings" href="#" onclick="go(event,'savings')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Savings
     </a>
   </nav>
   <div class="nav-r">
     <div class="wbal-pill"><div class="wd"></div><span class="wbal" id="navBal">₹—</span></div>
-    <div style="position:relative" id="notifW">
+    <!-- Notifications — user only -->
+    <div style="position:relative" id="notifW" class="user-only">
       <button class="ico-btn" onclick="toggleNotif()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span id="nbadge" class="nbadge hidden">0</span>
@@ -1940,7 +1947,7 @@
       <div id="pmenu" class="pmenu hidden">
         <div class="pm-hdr"><div class="pm-nm" id="pmNm">—</div><div class="pm-tp" id="pmTp">User</div></div>
         <button class="pm-it" onclick="goProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Profile &amp; Account</button>
-        <button class="pm-it" onclick="showAddMoney()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Add Money</button>
+        <button class="pm-it user-only" onclick="showAddMoney()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Add Money</button>
         <div class="pm-div"></div>
         <button class="pm-it pm-danger" onclick="handleLogout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
       </div>
@@ -1960,8 +1967,8 @@
   </div>
 </main>
 
-<!-- SCAN & PAY SHEET -->
-<div id="spOverlay" class="overlay hidden" onclick="closeSPOut(event)">
+<!-- SCAN & PAY SHEET — user only -->
+<div id="spOverlay" class="overlay hidden user-only" onclick="closeSPOut(event)">
   <div class="sheet">
     <div class="shandle"></div>
     <div class="shdr"><span class="stitle">📱 Scan &amp; Pay</span><button class="sclose" onclick="closeSP()">×</button></div>
@@ -1988,7 +1995,6 @@
             <div style="font-size: 40px; margin-bottom: 15px;">💸</div>
             <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 10px;">Confirm Payment</h3>
             <p id="confirmMsg" style="color: var(--t2); font-size: 14px; margin-bottom: 24px; line-height: 1.5;"></p>
-            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <button class="btn bs" onclick="closeConfirm(false)">Cancel</button>
               <button class="btn bp" onclick="closeConfirm(true)">Confirm & Pay</button>
@@ -2001,8 +2007,8 @@
   </div>
 </div>
 
-<!-- ADD MONEY SHEET -->
-<div id="amOverlay" class="overlay hidden" onclick="closeAMOut(event)">
+<!-- ADD MONEY SHEET — user only -->
+<div id="amOverlay" class="overlay hidden user-only" onclick="closeAMOut(event)">
   <div class="am-sheet">
     <div class="shandle"></div>
     <div class="shdr"><span class="stitle">💰 Add Money to Wallet</span><button class="sclose" onclick="closeAM()">×</button></div>
@@ -2015,8 +2021,8 @@
   </div>
 </div>
 
-<!-- FABs -->
-<div class="fab-bar">
+<!-- FABs — user only (scan & pay) -->
+<div class="fab-bar user-only">
   <button class="fcen" onclick="openSP()" title="Scan &amp; Pay">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h2v2M15 19h4M19 15v4"/></svg>
   </button>
@@ -2037,7 +2043,7 @@
   <div class="qpop-id" id="qrPopId">—</div>
 </div>
 
-<!-- CHAT -->
+<!-- CHAT — user only -->
 <button class="chat-fab" onclick="toggleChat()" id="chatFab">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 </button>
@@ -2172,6 +2178,9 @@
       ['navBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
       ['walBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
       ['walId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `Wallet ID: ${d.wallet.wallet_id}`; });
+      // Vendor-specific balance elements (separate IDs to avoid collision with hidden user card)
+      ['vWalBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
+      ['vWalId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `Wallet ID: ${d.wallet.wallet_id}`; });
       ['ovInc'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${(d.income || 0).toFixed(0)}`; });
       ['amCurrentBal'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = `₹${bal}`; });
       const rb = document.getElementById('riskBadge');
@@ -2183,6 +2192,8 @@
       ['qrImg', 'qrPopImg'].forEach(id => { const e = document.getElementById(id); if (e) e.src = qurl; });
       ['qrId', 'qrPopId'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = d.wallet.wallet_id; });
       if (typeof renderProfDets === 'function') renderProfDets(d);
+      // Trigger vendor overview update now that prof is populated
+      if (pType === 'vendor' && typeof fetchVendorOverview === 'function') fetchVendorOverview();
     } catch (e) { console.error('Profile error:', e); }
   }
 
@@ -2416,7 +2427,6 @@
   // Updated Pay Function
   async function pay(e) {
     e.preventDefault();
-    if (pType !== 'user') return;
     
     const amt = document.getElementById('payAmt').value;
     const recv = document.getElementById('recvId').value;
@@ -2426,7 +2436,12 @@
     if (!confirmed) return;
 
     const fd = new FormData();
-    fd.append('user_id', userId);
+    // Use vendor_id or user_id depending on profile type
+    if (pType === 'vendor') {
+      fd.append('vendor_id', vendorId);
+    } else {
+      fd.append('user_id', userId);
+    }
     fd.append('receiver_wallet_id', recv);
     fd.append('amount', amt);
 
@@ -2461,10 +2476,13 @@
   //  ADD MONEY
   // =====================================================================
   async function addMoneyToWallet(amount) {
-    if (pType !== 'user') { alert('Only users can add money'); return null; }
     try {
       const fd = new FormData();
-      fd.append('user_id', userId);
+      if (pType === 'vendor') {
+        fd.append('vendor_id', vendorId);
+      } else {
+        fd.append('user_id', userId);
+      }
       fd.append('amount', amount);
       const r = await fetch(`${API}/wallet/add-money`, { method: 'POST', body: fd });
       const d = await r.json();
@@ -2524,21 +2542,23 @@
   }
 
   async function sendChat(e) {
-    e.preventDefault(); if (pType !== 'user') return;
+    e.preventDefault();
     const inp = document.getElementById('cInp'), msg = inp.value.trim(); if (!msg) return;
     const msgs = document.getElementById('cmsgs');
-    msgs.innerHTML += `<div class="cmsg usr"><div class="mava u">👤</div><div class="mbub">${msg}</div></div>`;
+    const avatarIcon = pType === 'vendor' ? '🏪' : '👤';
+    msgs.innerHTML += `<div class="cmsg usr"><div class="mava u">${avatarIcon}</div><div class="mbub">${msg}</div></div>`;
     inp.value = '';
     const tid = 't' + Date.now();
     msgs.innerHTML += `<div class="cmsg bot" id="${tid}"><div class="mava">🤖</div><div class="mbub"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
     msgs.scrollTop = msgs.scrollHeight;
+    const id = pType === 'vendor' ? vendorId : userId;
     try {
       let r, d;
       for (const ep of [
-        () => fetch(`${API}/coach/chat/${userId}?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
-        () => fetch(`${API}/coach/${userId}/chat?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
-        () => { const fd = new FormData(); fd.append('user_id', userId); fd.append('message', msg); return fetch(`${API}/coach/chat`, { method: 'POST', body: fd }); },
-        () => { const fd = new FormData(); fd.append('user_id', userId); fd.append('message', msg); return fetch(`${API}/coach/`, { method: 'POST', body: fd }); }
+        () => fetch(`${API}/coach/chat/${id}?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
+        () => fetch(`${API}/coach/${id}/chat?message=${encodeURIComponent(msg)}`, { method: 'POST' }),
+        () => { const fd = new FormData(); fd.append('user_id', id); fd.append('message', msg); return fetch(`${API}/coach/chat`, { method: 'POST', body: fd }); },
+        () => { const fd = new FormData(); fd.append('user_id', id); fd.append('message', msg); return fetch(`${API}/coach/`, { method: 'POST', body: fd }); }
       ]) {
         try { r = await ep(); if (r.ok) { d = await r.json(); break; } } catch (ex) { continue; }
       }
@@ -2598,12 +2618,16 @@
   // =====================================================================
   async function go(e, tab) {
     if (e) e.preventDefault();
+    // Block user-only tabs for vendors
+    const userOnlyTabs = ['insights', 'limits', 'savings'];
+    if (pType === 'vendor' && userOnlyTabs.includes(tab)) return;
+
     document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(p => p.classList.remove('active'));
     document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
     document.getElementById(tab + 'Tab')?.classList.add('active');
     await loadTab(tab);
-    if (tab === 'transactions' && pType === 'user') fetchTxns();
+    if (tab === 'transactions') fetchTxns();
     if (tab === 'insights'     && pType === 'user') fetchInsights();
     if (tab === 'limits'       && pType === 'user') autoLimits();
     if (tab === 'savings'      && pType === 'user') autoSavings();
@@ -2622,12 +2646,20 @@
   //  BOOT
   // =====================================================================
   document.addEventListener('DOMContentLoaded', async () => {
+    // Apply vendor mode — hides user-only UI elements
+    if (pType === 'vendor') {
+      document.body.classList.add('vendor-mode');
+    }
+
     await loadTab('overview'); // load overview first — it's the default tab
     await loadProf();
     if (pType === 'user') {
       await fetchOverviewCurrentMonth();
       await fetchAlerts();
       startNudges();
+    } else {
+      // Vendor boot — load vendor overview stats
+      if (typeof fetchVendorOverview === 'function') fetchVendorOverview();
     }
   });
 </script>

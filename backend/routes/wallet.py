@@ -39,6 +39,46 @@ def add_money(
         "new_balance": wallet.balance
     }
 
+@router.get("/transactions/history/vendor/{vendor_id}")
+def get_vendor_transaction_history(vendor_id: int, db: Session = Depends(get_db)):
+
+    vendor_exists = db.query(database.Vendor).filter(database.Vendor.id == vendor_id).first()
+    if not vendor_exists:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+
+    # Only fetch incoming (received) transactions for this vendor
+    transactions = (
+        db.query(database.Transaction)
+        .filter(
+            database.Transaction.status == "success",
+            database.Transaction.receiver_id == vendor_id,
+            database.Transaction.receiver_type == "vendor"
+        )
+        .order_by(database.Transaction.timestamp.desc())
+        .all()
+    )
+
+    history = []
+
+    for tx in transactions:
+        # Sender is always a User (only users can send payments)
+        sender = db.query(database.User).filter(database.User.id == tx.sender_id).first()
+        counterparty = sender.username if sender else "Unknown User"
+
+        history.append({
+            "id": tx.id,
+            "timestamp": tx.timestamp.isoformat() if tx.timestamp else None,
+            "amount": float(tx.amount),
+            "type": "Received",
+            "party_name": counterparty,
+            "party_wallet_id": tx.sender_wallet_id,
+            "category": vendor_exists.category,   # vendor's own category
+            "urgency": None,
+            "status": tx.status,
+            "is_expense": False
+        })
+
+    return history
 
 
 @router.get("/transactions/history/{user_id}")
