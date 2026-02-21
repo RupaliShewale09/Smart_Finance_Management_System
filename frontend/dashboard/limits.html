@@ -102,6 +102,11 @@
       background: #3730A3;
     }
 
+    .bp:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .bsm {
       padding: 9px 16px;
       font-size: 12.5px;
@@ -127,12 +132,8 @@
     }
 
     @keyframes shim {
-      0% {
-        background-position: 200% 0;
-      }
-      100% {
-        background-position: -200% 0;
-      }
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
     .empty {
@@ -331,6 +332,10 @@
       color: var(--t3);
       font-weight: 600;
     }
+
+    /* Spinner for regenerate button */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-icon { display: inline-block; animation: spin 0.8s linear infinite; }
   </style>
 </head>
 <body>
@@ -342,7 +347,7 @@
       <h1>Spend Limits</h1>
       <p>AI-managed budgets · calculated for this month only</p>
     </div>
-    <button class="btn bp bsm" onclick="genLimits()">⚙ Regenerate</button>
+    <button class="btn bp bsm" id="regenBtn" onclick="genLimits()">⚙ Regenerate</button>
   </div>
 
   <div class="ibox" style="margin-bottom:16px;align-items:center">
@@ -406,25 +411,80 @@
 <script>
   (function() {
     const target = document.getElementById('limitsTab');
-    if (!target) return;
-    target.appendChild(document.getElementById('_limitsContent'));
+    if (target) target.appendChild(document.getElementById('_limitsContent'));
+
     // Set month label
     const ml = document.getElementById('limMonthLabel');
     if (ml) ml.textContent = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
   })();
 
+  (function initLimitsTab() {
+    // If rendered standalone (dev/preview), auto-run immediately
+    if (!document.getElementById('limitsTab')) {
+      autoLimits();
+      return;
+    }
+
+    // Pattern A: listen for a custom event dispatched by the tab switcher
+    document.addEventListener('tabChanged', function(e) {
+      if (e.detail && e.detail.tab === 'limits') autoLimits();
+    });
+
+    // Pattern B: observe tab button clicks (data-tab="limits" or id="limitsTabBtn")
+    document.querySelectorAll('[data-tab="limits"], #limitsTabBtn').forEach(btn => {
+      btn.addEventListener('click', autoLimits);
+    });
+
+    // Pattern C: MutationObserver — fires when #limitsTab becomes visible
+    //   (handles display:none → display:block or class toggling)
+    const limTab = document.getElementById('limitsTab');
+    if (limTab) {
+      let wasHidden = limTab.offsetParent === null; // true if currently hidden
+      const obs = new MutationObserver(() => {
+        const isHidden = limTab.offsetParent === null;
+        if (wasHidden && !isHidden) {
+          // Tab just became visible → auto-load
+          autoLimits();
+        }
+        wasHidden = isHidden;
+      });
+      obs.observe(limTab, { attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+
+      // If tab is already visible on page load, run immediately
+      if (!wasHidden) autoLimits();
+    }
+  })();
+
   // =====================================================================
   //  LIMITS DATA
   // =====================================================================
-  async function autoLimits() {
+  let _limitsLoading = false; // guard against double-calls
+
+  async function autoLimits(forceGenerate = false) {
+    if (_limitsLoading) return;
+    _limitsLoading = true;
+    setRegenBtnLoading(true);
+
     try {
-      // Fetch limits, current spending, and alerts all in parallel.
-      // /spend/current-spending uses merchant_category — same grouping as generate_spend_limits.
-      const [limRes, spendRes, alertsRes] = await Promise.all([
-        fetch(`${API}/spend/generate/${userId}`, { method: 'POST' }),
-        fetch(`${API}/spend/current-spending/${userId}`),
-        fetch(`${API}/spend/alerts/${userId}`)
-      ]);
+      // 1. Fetch current spending + alerts in parallel (always needed)
+      // 2. Try GET limits first; fall back to POST generate if forceGenerate or 404
+      const spendPromise  = fetch(`${API}/spend/current-spending/${userId}`);
+      const alertsPromise = fetch(`${API}/spend/alerts/${userId}`);
+
+      // ── GET existing limits (avoids re-generating on every tab open) ──
+      let limRes;
+      if (forceGenerate) {
+        limRes = await fetch(`${API}/spend/generate/${userId}`, { method: 'POST' });
+      } else {
+        // Try GET first; many backends expose /limits/:userId for cached limits
+        limRes = await fetch(`${API}/spend/limits/${userId}`);
+        if (!limRes.ok) {
+          // No cached limits → auto-generate silently on first visit
+          limRes = await fetch(`${API}/spend/generate/${userId}`, { method: 'POST' });
+        }
+      }
+
+      const [spendRes, alertsRes] = await Promise.all([spendPromise, alertsPromise]);
 
       const limData    = await limRes.json();
       const spendData  = await spendRes.json();
@@ -433,7 +493,16 @@
       // ── Limit bars ──────────────────────────────────────────────────
       if (!limData.limits) {
         const el = document.getElementById('limDisp');
-        if (el) el.innerHTML = `<div class="empty"><div class="ei">⚠️</div>${limData.detail || 'Could not generate limits. Please update your income and savings goal first.'}</div>`;
+        if (el) el.innerHTML = `
+          <div class="empty">
+            <div class="ei">⚠️</div>
+            ${limData.detail || 'Could not load limits. Please update your income and savings goal first.'}
+            <br><br>
+            <button class="btn bp bsm" onclick="genLimits()">Generate Now</button>
+          </div>`;
+        const lt = document.getElementById('limTag');
+        if (lt) lt.textContent = '0 categories';
+        renderAlerts(alertsData.alerts || []);
         return;
       }
 
@@ -444,44 +513,63 @@
       if (lt) lt.textContent = `${limData.limits.length} categories`;
 
       renderLimits(limData.limits, window.currentLimSpending);
-
-      // ── Alerts panel ────────────────────────────────────────────────
-      const alerts = alertsData.alerts || [];
-      const alertHtml = alerts.length
-        ? alerts.map(a => `
-            <div class="ait ${a.type === 'danger' ? 'd' : 'w'}">
-              <span style="font-size:16px">${a.type === 'danger' ? '🚨' : '⚠️'}</span>
-              <div>
-                <div class="attl">${a.category || 'Alert'}</div>
-                <div class="amsg">${a.message}</div>
-              </div>
-            </div>`).join('')
-        : '<div class="empty"><div class="ei">✅</div>No alerts this month</div>';
-
-      const limAlerts = document.getElementById('limAlerts');
-      if (limAlerts) limAlerts.innerHTML = alertHtml;
-
-      const lac = document.getElementById('limAlertCnt');
-      if (lac) lac.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
-
-      // Also sync the overview alertList if it exists
-      const alertList = document.getElementById('alertList');
-      if (alertList && alerts.length) alertList.innerHTML = alertHtml;
-
-      const ac = document.getElementById('alertCnt');
-      if (ac && alerts.length) ac.textContent = `${alerts.length} active`;
+      renderAlerts(alertsData.alerts || []);
 
     } catch (e) {
       console.error('Limits error:', e);
+      const el = document.getElementById('limDisp');
+      if (el) el.innerHTML = `<div class="empty"><div class="ei">❌</div>Failed to load limits. Check your connection and try again.</div>`;
+    } finally {
+      _limitsLoading = false;
+      setRegenBtnLoading(false);
     }
   }
 
+  // "Regenerate" button → force a fresh POST to /generate
   async function genLimits() {
     const el = document.getElementById('limDisp');
     if (el) el.innerHTML = '<div class="shimmer" style="height:100px;border-radius:var(--r2)"></div>';
-    await autoLimits();
+    await autoLimits(true); // forceGenerate = true
   }
 
+  // ── Alerts renderer (extracted so both paths can call it) ──────────
+  function renderAlerts(alerts) {
+    const alertHtml = alerts.length
+      ? alerts.map(a => `
+          <div class="ait ${a.type === 'danger' ? 'd' : 'w'}">
+            <span style="font-size:16px">${a.type === 'danger' ? '🚨' : '⚠️'}</span>
+            <div>
+              <div class="attl">${a.category || 'Alert'}</div>
+              <div class="amsg">${a.message}</div>
+            </div>
+          </div>`).join('')
+      : '<div class="empty"><div class="ei">✅</div>No alerts this month</div>';
+
+    const limAlerts = document.getElementById('limAlerts');
+    if (limAlerts) limAlerts.innerHTML = alertHtml;
+
+    const lac = document.getElementById('limAlertCnt');
+    if (lac) lac.textContent = `${alerts.length} alert${alerts.length !== 1 ? 's' : ''}`;
+
+    // Sync overview alert list if present
+    const alertList = document.getElementById('alertList');
+    if (alertList && alerts.length) alertList.innerHTML = alertHtml;
+
+    const ac = document.getElementById('alertCnt');
+    if (ac && alerts.length) ac.textContent = `${alerts.length} active`;
+  }
+
+  // ── Regenerate button loading state ───────────────────────────────
+  function setRegenBtnLoading(loading) {
+    const btn = document.getElementById('regenBtn');
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.innerHTML = loading
+      ? '<span class="spin-icon">⚙</span> Loading…'
+      : '⚙ Regenerate';
+  }
+
+  // ── Limit bars renderer ────────────────────────────────────────────
   function renderLimits(limits, catSpending) {
     const el = document.getElementById('limDisp');
     if (!el) return;
