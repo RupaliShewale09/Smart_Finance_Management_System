@@ -4,11 +4,17 @@ from sqlalchemy.orm import sessionmaker
 from passlib.context import CryptContext
 from datetime import datetime
 import os
+from dotenv import load_dotenv
 
+load_dotenv()  # Load environment variables from .env
 
-# Database Config
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, '../finance_app.db')}"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    # Fallback for local if env not set
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, '../finance_app.db')}"
+
 engine = create_engine(
     DATABASE_URL, connect_args={"check_same_thread": False}
 )
