@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
 import os
@@ -15,6 +16,20 @@ from backend.utils.nudge_scheduler import start_scheduler
 database.init_db()
 
 app = FastAPI(title="Smart Finance Management System")
+
+origins = [
+    "http://localhost:5500",      # frontend dev server
+    "http://127.0.0.1:5500",      # alternative localhost port
+    "https://smart-finance-management-system.onrender.com/"   
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # allow requests from these origins
+    allow_credentials=True,
+    allow_methods=["*"],          # allow all HTTP methods
+    allow_headers=["*"],          # allow all headers
+)
 
 app.include_router(auth.router)
 app.include_router(scan_pay.router)   # step 2 & 3

@@ -404,7 +404,9 @@
   </div>
 
   <script>
-    const API = 'http://127.0.0.1:8000';
+    const isDev = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const API = isDev ? "http://127.0.0.1:8000" : "https://smart-finance-management-system.onrender.com"; 
+
     const pType = localStorage.getItem('profileType') || 'user';
 
     document.getElementById('profileBadge').textContent = pType === 'user' ? '👤 User Login' : '🏪 Vendor Login';

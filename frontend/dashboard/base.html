@@ -2066,7 +2066,8 @@
   // =====================================================================
   //  GLOBALS
   // =====================================================================
-  const API = 'http://127.0.0.1:8000';
+  const isDev = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  const API = isDev ? "http://127.0.0.1:8000" : "https://smart-finance-management-system.onrender.com"; 
   let pType = localStorage.getItem('profileType') || 'user';
   let userId = localStorage.getItem('userId') || null;
   let vendorId = localStorage.getItem('vendorId') || null;
