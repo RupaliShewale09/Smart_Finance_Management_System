@@ -15,9 +15,15 @@ if not DATABASE_URL:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, '../finance_app.db')}"
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+connect_args = {}
+
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+else:
+    connect_args = {"sslmode": "require"}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
+
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
