@@ -1,10 +1,22 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from backend.database import UserSpendLimit
+from datetime import datetime
 
 
 def _norm_category(cat: str) -> str:
     return str(cat).strip().title()
+
+def get_month_range():
+    now = datetime.utcnow()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    if month_start.month == 12:
+        next_month = month_start.replace(year=month_start.year + 1, month=1)
+    else:
+        next_month = month_start.replace(month=month_start.month + 1)
+
+    return month_start, next_month
 
 
 def generate_spend_limits(df: pd.DataFrame, income: float, savings_goal: float):

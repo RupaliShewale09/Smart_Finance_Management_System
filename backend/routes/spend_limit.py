@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy import text
 from datetime import datetime
 
-from backend.utils.spend_limit import generate_spend_limits, save_user_limits, check_spend_alerts
+from backend.utils.spend_limit import generate_spend_limits, save_user_limits, check_spend_alerts, get_month_range
 import backend.database as database
 
 router = APIRouter(prefix="/spend", tags=["Spend Limits"])
@@ -20,16 +20,21 @@ def get_db():
 
 @router.post("/generate/{user_id}")
 def generate_limits(user_id: int, db: Session = Depends(get_db)):
-    current_month = datetime.utcnow().strftime('%Y-%m')
+    month_start, next_month = get_month_range()
     # Fetch user transactions
     expenses = db.execute(
         text("""
             SELECT merchant_category, amount 
             FROM expenses 
             WHERE user_id=:user_id
-             AND strftime('%Y-%m', timestamp) = :current_month
+             AND timestamp >= :month_start
+             AND timestamp < :next_month
         """),
-        {"user_id": user_id, "current_month": current_month}
+        {
+            "user_id": user_id,
+            "month_start": month_start,
+            "next_month": next_month
+        }
     ).fetchall()
     
     if not expenses:
@@ -69,17 +74,22 @@ def generate_limits(user_id: int, db: Session = Depends(get_db)):
 # Keys are normalized (title-case, stripped) to match generate_spend_limits output exactly.
 @router.get("/current-spending/{user_id}")
 def get_current_spending(user_id: int, db: Session = Depends(get_db)):
-    current_month_str = datetime.utcnow().strftime('%Y-%m')
+    month_start, next_month = get_month_range()
 
     expenses = db.execute(
         text("""
             SELECT merchant_category, SUM(amount) as total
             FROM expenses
             WHERE user_id = :user_id
-            AND strftime('%Y-%m', timestamp) = :current_month
+            AND timestamp >= :month_start
+            AND timestamp < :next_month
             GROUP BY merchant_category
         """),
-        {"user_id": user_id, "current_month": current_month_str}
+        {
+            "user_id": user_id,
+            "month_start": month_start,
+            "next_month": next_month
+        }
     ).fetchall()
 
     # Normalize keys: strip + title-case — same as generate_spend_limits
@@ -93,7 +103,7 @@ def get_current_spending(user_id: int, db: Session = Depends(get_db)):
 # Endpoint to check alerts
 @router.get("/alerts/{user_id}")
 def get_alerts(user_id: int, db: Session = Depends(get_db)):
-    current_month_str = datetime.utcnow().strftime('%Y-%m')
+    month_start, next_month = get_month_range()
 
     # Get current spend
     expenses = db.execute(
@@ -101,10 +111,15 @@ def get_alerts(user_id: int, db: Session = Depends(get_db)):
             SELECT merchant_category, SUM(amount) as total 
             FROM expenses 
             WHERE user_id = :user_id 
-            AND strftime('%Y-%m', timestamp) = :current_month
+            AND timestamp >= :month_start
+            AND timestamp < :next_month
             GROUP BY merchant_category
         """),
-        {"user_id": user_id, "current_month": current_month_str}
+        {
+            "user_id": user_id,
+            "month_start": month_start,
+            "next_month": next_month
+        }
     ).fetchall()
 
     current_spend = {str(row[0]).strip().title(): row[1] for row in expenses}
