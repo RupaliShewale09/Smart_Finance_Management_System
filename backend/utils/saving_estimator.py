@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from backend.database import Expense, User
+from backend.database import Expense, User, Wallet
 
 
 def estimate_savings_potential(
@@ -9,12 +9,20 @@ def estimate_savings_potential(
     start_date,
     end_date
 ):
-    # 1️⃣ Fetch user income
+    # 1️⃣ Fetch user income and wallet balance
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         return None
 
     income = user.income or 0.0
+
+    # Wallet balance
+    wallets = db.query(func.sum(Wallet.balance)).filter(
+        Wallet.owner_type == "user",
+        Wallet.owner_id == user_id
+    ).scalar()
+
+    total_balance = float(wallets or 0.0)
 
     # 2️⃣ Sum expenses by urgency
     expenses = db.query(
@@ -26,6 +34,8 @@ def estimate_savings_potential(
         Expense.timestamp <= end_date
     ).group_by(Expense.urgency).all()
 
+    print("Expenses", expenses)
+
     urgency_totals = {
         "critical": 0.0,
         "necessary": 0.0,
@@ -36,32 +46,48 @@ def estimate_savings_potential(
         if urgency:
             urgency_totals[urgency.lower()] = float(total)
 
+    print("Urgency",urgency_totals)
 
-    # 5️⃣ Savings estimation logic
-    estimated_savings = round(
-        (urgency_totals["necessary"] * 0.30) +
-        (urgency_totals["discretionary"] * 0.60),
-        2
-    )
+    total_spent = sum(urgency_totals.values())
+
+    # Current savings
+    current_savings = max(income - total_spent, 0)
+
+    # Reducible spending
+    reducible_necessary = urgency_totals["necessary"] * 0.25
+    reducible_discretionary = urgency_totals["discretionary"] * 0.60
+
+    reducible_total = reducible_necessary + reducible_discretionary
+
+    estimated_savings = round(current_savings + reducible_total, 2)
 
     savings_percentage = (
         round((estimated_savings / income) * 100, 2)
         if income > 0 else 0
+    ) 
+
+    savings_score = (
+        round((current_savings / income) * 100, 2)
+        if income > 0 else 0
     )
 
-    message = (
-        "Savings potential is good if discretionary expenses are optimized."
-        if estimated_savings > 0
-        else "Limited savings potential for the selected period."
-    )
+    if savings_score < 20:
+        financial_health = "Poor"
+    elif savings_score < 40:
+        financial_health = "Weak"
+    elif savings_score < 75:
+        financial_health = "Good"
+    else:
+        financial_health = "Excellent" 
 
     return {
         "income": round(income, 2),
         "estimated_savings_potential": estimated_savings,
-        "savings_percentage": savings_percentage,
+        "savings_potential_percentage": savings_percentage,
         "reducible_breakdown": {
-            "necessary": round(urgency_totals["necessary"] * 0.30, 2),
-            "discretionary": round(urgency_totals["discretionary"] * 0.60, 2)
+            "necessary": round(reducible_necessary, 2),
+            "discretionary": round(reducible_discretionary, 2)
         },
-        "message": message
+        "savings_score": savings_score,
+        "financial_health": financial_health,
     }

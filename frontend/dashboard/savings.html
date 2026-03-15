@@ -239,24 +239,13 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 14px;
+      padding: 5px 13px;
       border-radius: 30px;
-      font-size: 12px;
-      font-weight: 800;
+      font-weight: 700;
       background: var(--pg);
       color: var(--p);
-      margin-bottom: 14px;
     }
 
-    .inv-reason {
-      font-size: 13px;
-      color: var(--t2);
-      line-height: 1.6;
-      margin-bottom: 14px;
-      padding: 12px 14px;
-      background: var(--s2);
-      border-radius: var(--r2);
-    }
 
     .inv-opts-lbl {
       font-size: 11px;
@@ -388,12 +377,18 @@
       cautious: {
         ico: '🟡',
         label: 'Proceed Carefully',
-        desc: 'You have some capacity to invest, but build savings first.'
+        desc: 'You have some capacity to invest, but building stronger savings will improve stability.'
       },
       needs_improvement: {
+        ico: '🟠',
+        label: 'Build Savings First',
+        desc: 'Your current savings level is limited. Focus on reducing discretionary spending and increasing savings before investing.'
+      },
+
+      not_ready: {
         ico: '🔴',
         label: 'Focus on Savings First',
-        desc: 'Strengthen your savings before committing to investments.'
+        desc: 'Your savings capacity is currently too low for safe investing. Prioritize stabilizing finances and building an emergency buffer.'
       }
     };
     const RISK_LABELS = {
@@ -414,36 +409,86 @@
       const invEl = document.getElementById('invDisp');
       try {
         const d = await (await fetch(`${API}/savings/estimate`, { method: 'POST', body: fd })).json();
-        const pct = d.savings_percentage || 0;
-        const pctCol = pct > 20 ? '#10B981' : pct > 10 ? '#F59E0B' : '#EF4444';
-        const pctLbl = pct > 20 ? '🟢 Healthy' : pct > 10 ? '🟡 Average' : '🔴 Low';
+        const pct    = d.savings_potential_percentage || d.savings_percentage || 0;
+        const health = d.financial_health || "Unknown";
+        const score  = d.savings_score || 0;
+        const nec    = d.reducible_breakdown?.necessary     || 0;
+        const dis    = d.reducible_breakdown?.discretionary || 0;
+        const total  = nec + dis || 1;
+        const necW   = Math.round((nec / total) * 100);
+        const disW   = Math.round((dis / total) * 100);
+
+        let pctLbl = "⚪ Unknown";
+        let pctCol = "#8894C2";
+
+        if (health === "Excellent") { pctLbl = "🟢 Excellent"; pctCol = "#10B981"; }
+        else if (health === "Good") { pctLbl = "🟡 Good";      pctCol = "#F59E0B"; }
+        else if (health === "Weak") { pctLbl = "🟠 Weak";      pctCol = "#F97316"; }
+        else if (health === "Poor") { pctLbl = "🔴 Poor";      pctCol = "#EF4444"; }
 
         if (savEl) savEl.innerHTML = `
+
+          <!-- 3 metric tiles: income / can save / savings rate -->
           <div class="stiles3">
-            <div class="stile" ><div class="stlbl">💼 Monthly Income</div><div class="stval">₹${(d.income || 0).toFixed(0)}</div></div>
-            <div class="stile"><div class="stlbl">💰 You Can Save</div><div class="stval" style="color:${pctCol}">₹${(d.estimated_savings_potential || 0).toFixed(0)}</div></div>
-            <div class="stile"><div class="stlbl">📊 Savings Rate</div><div class="stval" style="color:${pctCol}">${pct.toFixed(1)}%</div></div>
+            <div class="stile">
+              <div class="stlbl">💼 Monthly Income</div>
+              <div class="stval" style="color:var(--t1)">₹${(d.income || 0).toFixed(0)}</div>
+            </div>
+            <div class="stile">
+              <div class="stlbl">💰 You Can Save</div>
+              <div class="stval" style="color:${pctCol}">₹${(d.estimated_savings_potential || 0).toFixed(0)}</div>
+            </div>
+            <div class="stile">
+              <div class="stlbl">📊 Savings Rate</div>
+              <div class="stval" style="color:${pctCol}">${pct.toFixed(1)}%</div>
+            </div>
           </div>
-          
+
+          <!-- Reducible expenses with mini progress bars -->
           <div class="stile" style="border:1.5px solid var(--bd);margin-bottom:14px">
             <div class="stlbl" style="margin-bottom:12px">📦 Reducible Expenses</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div>
-                <div class="stlbl" style="color:#EA580C">🟠 Necessary</div>
-                <div class="stval" style="font-size:18px;color:#F97316">₹${(d.reducible_breakdown?.necessary || 0).toFixed(0)}</div>
+                <div class="stlbl" style="color:#EA580C">🟠 Necessary (−25%)</div>
+                <div class="stval" style="font-size:18px;color:#F97316">₹${nec.toFixed(0)}</div>
+                <div style="margin-top:8px;height:4px;border-radius:4px;background:var(--bd);overflow:hidden">
+                  <div style="height:100%;width:${necW}%;background:#F97316;border-radius:4px"></div>
+                </div>
               </div>
               <div>
-                <div class="stlbl" style="color:#CA8A04">🟡 Discretionary</div>
-                <div class="stval" style="font-size:18px;color:#EAB308">₹${(d.reducible_breakdown?.discretionary || 0).toFixed(0)}</div>
-
+                <div class="stlbl" style="color:#CA8A04">🟡 Discretionary (−60%)</div>
+                <div class="stval" style="font-size:18px;color:#EAB308">₹${dis.toFixed(0)}</div>
+                <div style="margin-top:8px;height:4px;border-radius:4px;background:var(--bd);overflow:hidden">
+                  <div style="height:100%;width:${disW}%;background:#84CC16;border-radius:4px"></div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${pctCol}18;border-radius:var(--r2);margin-bottom:12px;border:1px solid ${pctCol}30">
-            <span style="font-size:16px">${pctLbl.split(' ')[0]}</span>
-            <span style="font-size:13px;font-weight:700;color:${pctCol}">${pctLbl.slice(3)}</span>
-            <span style="font-size:12px;color:var(--t2);flex:1">${pct.toFixed(1)}% savings rate this month</span>
+          <!-- Savings score + financial health banner -->
+          <div style="display:flex;align-items:center;gap:12px;padding:13px 15px;
+                      background:${pctCol}18;border-radius:var(--r2);
+                      border:1.5px solid ${pctCol}35">
+            <div style="width:40px;height:40px;border-radius:50%;
+                        background:${pctCol}30;display:flex;align-items:center;
+                        justify-content:center;font-size:20px;flex-shrink:0">
+              ${pctLbl.split(' ')[0]}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:800;color:${pctCol}">
+                Financial Health: ${health}
+              </div>
+              <div style="font-size:11.5px;color:var(--t2);margin-top:3px">
+                Current Savings score · ${score.toFixed(1)} / 100
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:22px;font-weight:800;
+                          font-family:'JetBrains Mono',monospace;
+                          line-height:1;color:${pctCol}">${score.toFixed(1)}</div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                          letter-spacing:0.3px;color:var(--t3)">score</div>
+            </div>
           </div>`;
 
         // Now fetch investment suggestions
@@ -451,13 +496,27 @@
           const id = await (await fetch(`${API}/investments/`, { method: 'POST', body: fd })).json();
           const ri = READINESS_INFO[id.investment_readiness] || READINESS_INFO.cautious;
           const rlbl = RISK_LABELS[id.risk_profile] || id.risk_profile;
+          const suggestedAmt = id.suggested_investment_amount || 0;
           if (invEl) invEl.innerHTML = `
             <div class="inv-readiness ${id.investment_readiness}">
               <div class="inv-ri-ico">${ri.ico}</div>
               <div><div class="inv-ri-label">${ri.label}</div><div class="inv-ri-desc">${ri.desc}</div></div>
             </div>
-           
-            <div class="inv-risk-badge">⚖️ Investor Profile: ${rlbl} </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;
+                          gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+                <div class="inv-risk-badge" style="font-size:13px; letter-spacing:0.3px;  margin-top:4px;">⚖️ Investor Profile: ${rlbl}</div>
+                ${suggestedAmt > 0 ? `
+                <div style="display:flex;align-items:center;gap:7px;
+                            padding:5px 13px;border-radius:30px;
+                            background:rgba(16,185,129,0.10);
+                            border:1.5px solid rgba(16,185,129,0.28);">
+                  <span style="font-size:11px;font-weight:700;color:var(--t3);
+                              text-transform:uppercase;letter-spacing:0.4px">💸 You can Invest</span>
+                  <span style="font-size:15px;font-weight:800;
+                              font-family:'JetBrains Mono',monospace;
+                              color:var(--ok)">₹${suggestedAmt.toFixed(0)}</span>
+                </div>` : ''}
+              </div>
 
             <div class="inv-opts-lbl">Recommended for you</div>
             ${(id.recommended_options || []).map(o => `

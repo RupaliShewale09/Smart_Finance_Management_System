@@ -30,6 +30,7 @@ class SavingsRequest(BaseModel):
 class SavingsResponse(BaseModel):
     income: float
     estimated_savings_potential: float
-    savings_percentage: float
+    savings_potential_percentage: float
     reducible_breakdown: Dict[str, float]
-    message: str
+    savings_score: float
+    financial_health: str

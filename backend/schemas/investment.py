@@ -46,4 +46,4 @@ class InvestmentResponse(BaseModel):
     risk_profile: str
     investment_readiness: str
     recommended_options: List[str]
-    reason: str
+    suggested_investment_amount: float

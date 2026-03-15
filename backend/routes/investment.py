@@ -37,19 +37,11 @@ def get_investment_suggestions(
     if not step7_output:
         raise HTTPException(status_code=404, detail="User or savings data not found")
 
-    # Step 2️⃣: Only fetch required fields
-    savings_potential = step7_output.get("estimated_savings_potential", 0)
-    income = step7_output.get("income", 0)
-    reducible_expenses = step7_output.get("reducible_breakdown", {})
 
-    # Step 3️⃣: Call Step 8 utility to generate suggestions
+    # Step : Call Step 8 utility to generate suggestions
     investment_suggestions = suggest_investment(
         user_id=request.user_id,
-        step7_output={
-            "estimated_savings_potential": savings_potential,
-            "income": income,
-            "reducible_breakdown": reducible_expenses
-        }
+        step7_output=step7_output
     )
 
     if not investment_suggestions:

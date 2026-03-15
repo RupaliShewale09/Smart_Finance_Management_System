@@ -22,30 +22,84 @@ def suggest_investment(user_id: int, step7_output: dict):
     risk_tolerance = (user.risk_tolerance or "medium").lower()
 
     savings_potential = step7_output.get("estimated_savings_potential", 0)
+    financial_health = step7_output.get("financial_health", "Weak")
     reducible_expenses = step7_output.get("reducible_breakdown", {})
 
-    # Step 1: Investment Readiness
-    savings_ratio = savings_potential / income if income > 0 else 0
 
-    if savings_ratio >= 0.2:
-        investment_readiness = "stable"
-        saving_behavior = "good"
-    elif savings_ratio >= 0.1:
-        investment_readiness = "cautious"
-        saving_behavior = "average"
-    else:
+    if financial_health == "Poor":
+        investment_readiness = "not_ready"
+
+    elif financial_health == "Weak":
         investment_readiness = "needs_improvement"
-        saving_behavior = "poor"
+
+    elif financial_health == "Good":
+        investment_readiness = "cautious"
+
+    elif financial_health == "Excellent":
+        investment_readiness = "stable"
+
+    else:
+        investment_readiness = "cautious"
 
     # Step 2: Risk Profile
     if risk_tolerance == "low":
-        risk_profile = "conservative" if saving_behavior in ["good", "average"] else "very conservative"
+
+        if financial_health == "Poor":
+            risk_profile = "very conservative"
+
+        elif financial_health == "Weak":
+            risk_profile = "conservative"
+
+        elif financial_health == "Good":
+            risk_profile = "conservative"
+
+        else:
+            risk_profile = "moderate"
+
     elif risk_tolerance == "medium":
-        risk_profile = "moderate" if saving_behavior in ["good", "average"] else "cautious"
+
+        if financial_health == "Poor":
+            risk_profile = "very conservative"
+
+        elif financial_health == "Weak":
+            risk_profile = "cautious"
+
+        elif financial_health == "Good":
+            risk_profile = "moderate"
+
+        else:
+            risk_profile = "aggressive"
+
     elif risk_tolerance == "high":
-        risk_profile = "aggressive" if saving_behavior in ["good", "average"] else "moderate"
+
+        if financial_health == "Poor":
+            risk_profile = "conservative"
+
+        elif financial_health == "Weak":
+            risk_profile = "moderate"
+
+        elif financial_health == "Good":
+            risk_profile = "aggressive"
+
+        else:
+            risk_profile = "aggressive"
+
     else:
         risk_profile = "moderate"
+
+    if financial_health == "Poor":
+        invest_ratio = 0.20
+
+    elif financial_health == "Weak":
+        invest_ratio = 0.35
+
+    elif financial_health == "Good":
+        invest_ratio = 0.60
+
+    else:
+        invest_ratio = 0.75
+
+    suggested_investment = savings_potential * invest_ratio
 
     # Step 3: Recommended Options
     options_map = {
@@ -58,24 +112,10 @@ def suggest_investment(user_id: int, step7_output: dict):
 
     recommended_options = options_map.get(risk_profile, ["Balanced Mutual Funds"])
 
-    # Step 4: Reason
-    reason_parts = []
-    if saving_behavior in ["good", "average"]:
-        reason_parts.append("Based on consistent savings")
-    else:
-        reason_parts.append("Based on limited savings capacity")
-
-    discretionary_ratio = reducible_expenses.get("discretionary", 0) / income if income else 0
-    if discretionary_ratio < 0.1:
-        reason_parts.append("and controlled discretionary spending")
-    else:
-        reason_parts.append("but discretionary spending is high")
-
-    reason = ", ".join(reason_parts)
 
     return {
         "risk_profile": risk_profile,
         "investment_readiness": investment_readiness,
         "recommended_options": recommended_options,
-        "reason": reason
+        "suggested_investment_amount": round(suggested_investment, 2)
     }
