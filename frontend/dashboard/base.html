@@ -2680,26 +2680,32 @@
   const loadedTabs = new Set();
 
   async function loadTab(tab) {
-    if (loadedTabs.has(tab)) return;
-    loadedTabs.add(tab);
     try {
-      const res = await fetch(TAB_FILES[tab]);
+      // Add a timestamp (?t=...) to bypass browser caching so changes show up immediately
+      const res = await fetch(TAB_FILES[tab] + '?t=' + Date.now());
       const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
       const pane = document.getElementById(tab + 'Tab');
       if (!pane) return;
-      const body = doc.body;
-      Array.from(body.children).forEach(child => {
-        if (child.tagName !== 'SCRIPT') pane.appendChild(document.importNode(child, true));
+
+      // Use innerHTML to COMPLETELY replace the old content with your new changes
+      pane.innerHTML = html;
+
+      // This part manually re-runs the scripts inside the loaded HTML
+      const scripts = pane.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        document.body.appendChild(newScript);
+        // Remove it immediately after execution to keep the DOM clean
+        newScript.remove();
       });
-      const scripts = doc.querySelectorAll('script');
-      for (const s of scripts) {
-        const el = document.createElement('script');
-        if (s.src) { el.src = s.src; } else { el.textContent = s.textContent; }
-        document.body.appendChild(el);
-      }
-    } catch (e) { console.error(`Failed to load tab: ${tab}`, e); }
+    } catch (e) {
+      console.error(`Failed to load tab: ${tab}`, e);
+    }
   }
 
   // =====================================================================
