@@ -2727,6 +2727,7 @@
     await loadTab(tab);
     if (tab === 'overview') {
         if (pType === 'user') {
+          renderOverviewProfile();
           fetchOverviewCurrentMonth();
           fetchAlerts();
         } else {
@@ -2758,6 +2759,7 @@
     await loadTab('overview');
     await loadProf();
     if (pType === 'user') {
+      renderOverviewProfile();
       await fetchOverviewCurrentMonth();
       await fetchAlerts();
       startNudges();

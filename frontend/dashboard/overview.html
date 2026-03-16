@@ -90,7 +90,7 @@
       const ts = fmt(d.total_spent);
       const hu = d.high_urgency_expenses || 0;
       const cats = Object.keys(d.category_wise_spending || {}).length;
-      const income = (prof?.income) || 1;
+      const income = (prof?.income || 0) || 1;
 
       const g = id => document.getElementById(id);
       if (g('totSpent')) g('totSpent').textContent = ts;
@@ -167,6 +167,30 @@
 
     } catch (e) {
       console.error('Alert error:', e);
+    }
+  }
+
+  function renderOverviewProfile() {
+    if (!prof) return;
+
+    const g = id => document.getElementById(id);
+
+    // income
+    if (g('ovInc')) {
+      const inc = Number(prof.income || 0);
+      g('ovInc').textContent = `₹${inc.toLocaleString()}`;
+    }
+
+    // wallet balance
+    if (g('walBal')) {
+      const bal = prof.wallet?.balance ?? 0;
+      g('walBal').textContent = `₹${parseFloat(bal).toFixed(2)}`;
+    }
+
+    // wallet id
+    if (g('walId')) {
+      const wid = prof.wallet?.wallet_id ?? '—';
+      g('walId').textContent = `Wallet ID: ${wid}`;
     }
   }
 </script>
