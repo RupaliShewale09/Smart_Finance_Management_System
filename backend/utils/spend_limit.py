@@ -38,8 +38,8 @@ def generate_spend_limits(df: pd.DataFrame, income: float, savings_goal: float):
     for category, stats in category_stats.iterrows():
         suggested_limit = max(stats['mean'] * 1.5, stats['max'])
         safety_cap = spendable_total * 0.6
-        final_limit = round(min(suggested_limit, safety_cap), 2)
-        alert_threshold = round(final_limit * 0.85, 2)
+        final_limit = float(round(min(suggested_limit, safety_cap), 2))
+        alert_threshold = float(round(final_limit * 0.85, 2))
 
         limits.append({
             "category": category,           # Already normalized by _norm_category
@@ -48,12 +48,12 @@ def generate_spend_limits(df: pd.DataFrame, income: float, savings_goal: float):
         })
 
     total_spent_hist = df["amount"].sum()
-    total_limit = min(spendable_total, total_spent_hist * 1.2)
+    total_limit = float(min(spendable_total, total_spent_hist * 1.2))
 
     limits.append({
         "category": "Total Monthly Spend",
-        "limit": round(total_limit, 2),
-        "alert_threshold": round(total_limit * 0.9, 2)
+        "limit": float(round(total_limit, 2)),
+        "alert_threshold": float(round(total_limit * 0.9, 2))
     })
 
     return limits
@@ -68,8 +68,8 @@ def save_user_limits(db: Session, user_id: int, limits: list):
         db_limit = UserSpendLimit(
             user_id=user_id,
             category=limit['category'],
-            limit=limit['limit'],
-            alert_threshold=limit['alert_threshold']
+            limit=float(limit['limit']),
+            alert_threshold=float(limit['alert_threshold'])
         )
         db.add(db_limit)
     db.commit()
