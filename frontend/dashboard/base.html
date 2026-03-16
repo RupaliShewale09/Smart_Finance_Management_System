@@ -2725,6 +2725,14 @@
     syncMobDrawerActive(tab);
 
     await loadTab(tab);
+    if (tab === 'overview') {
+        if (pType === 'user') {
+          fetchOverviewCurrentMonth();
+          fetchAlerts();
+        } else {
+          if (typeof fetchVendorOverview === 'function') fetchVendorOverview();
+        }
+    }
     if (tab === 'transactions') fetchTxns();
     if (tab === 'insights'     && pType === 'user') fetchInsights();
     if (tab === 'limits'       && pType === 'user') autoLimits();
